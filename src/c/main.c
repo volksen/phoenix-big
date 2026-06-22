@@ -611,7 +611,7 @@ static void layer_update_proc(Layer * layer, GContext * ctx){
 #else
 
  GRect DateRect =
-  
+
    (PBL_IF_ROUND_ELSE(
       GRect(22-22+6, 26+40+2, 32, 40),
       GRect(0+108-19-18, 0+94, 38, 16)));
@@ -621,7 +621,7 @@ static void layer_update_proc(Layer * layer, GContext * ctx){
       GRect(22-22+6, 16+22+40+2, 32, 40),
       GRect(0+108-19-18, 16+90, 38, 40)));
 
-  GRect BatteryRect =
+  GRect PrecipProbRect =
    (PBL_IF_ROUND_ELSE(
       GRect(100,136+12,50,20),
       GRect(0+108-19-18,150, 38, 20)));
@@ -642,16 +642,14 @@ static void layer_update_proc(Layer * layer, GContext * ctx){
   char daynow[8];
   snprintf(daynow, sizeof(daynow), "%02d", daydraw);
 
-  //Battery
-  int battery_level = battery_state_service_peek().charge_percent;
-  char battperc[20];
-  snprintf(battperc, sizeof(battperc), "%d", battery_level);
-  strcat(battperc, "%");
+  //Precipitation Probability (replaces battery)
+  char precipprob[20];
+  snprintf(precipprob, sizeof(precipprob), "%s", settings.precipprobstring);
 
   graphics_context_set_text_color(ctx, ColorSelect(settings.Text3Color, settings.Text3ColorN));
   graphics_draw_text(ctx, datenow, FontDaySunsetSteps, DateRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentCenter), NULL);
   graphics_context_set_text_color(ctx, ColorSelect(settings.Text8Color, settings.Text8ColorN));
-  graphics_draw_text(ctx, battperc, FontBattery, BatteryRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+  graphics_draw_text(ctx, precipprob, FontBattery, PrecipProbRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 
   graphics_context_set_text_color(ctx, ColorSelect(settings.Text6Color, settings.Text6ColorN));
   graphics_draw_text(ctx, daynow, PBL_IF_ROUND_ELSE(FontDateNumber,FontDateNumber), DateRect2, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentCenter), NULL);
