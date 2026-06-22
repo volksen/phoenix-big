@@ -1168,7 +1168,7 @@ Tuple * disntheme_t = dict_find(iter, MESSAGE_KEY_NightTheme);
   
   // Refresh precipitation display when weather data is updated
   display_precip_amount();
-  text_layer_mark_dirty(s_step_layer);
+  layer_mark_dirty(s_step_layer);
 
   // Save the new settings to persistent storage
 
