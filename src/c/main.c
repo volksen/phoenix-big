@@ -403,27 +403,10 @@ static void get_step_count() {
     s_step_count = (int)health_service_sum_today(HealthMetricStepCount);
 }
 
-static void display_step_count() {
-  int thousands = s_step_count / 1000;
-  int hundreds = (s_step_count % 1000)/100;
-  int hundreds2 = (s_step_count % 1000);
-//  static char s_emoji[5];
-
-text_layer_set_text_color(s_step_layer, ColorSelect(settings.Text1Color, settings.Text1ColorN));
- 
-  if(thousands > 0) {
-    PBL_IF_ROUND_ELSE(
-    
-    snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
-     "%d.%d%s", thousands, hundreds, "k"),
-      snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
-      "%d.%d%s", thousands, hundreds, "k"/*s_emoji*/));
-  } else {
-    snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
-      "%d"/* %s"*/, hundreds2/*, s_emoji*/);
-  }
-  text_layer_set_text(s_step_layer, s_current_steps_buffer);
- 
+static void display_precip_amount() {
+  // Display precipitation amount (mm) instead of steps
+  text_layer_set_text_color(s_step_layer, ColorSelect(settings.Text1Color, settings.Text1ColorN));
+  text_layer_set_text(s_step_layer, settings.precipamountstring);
 }
 
 
