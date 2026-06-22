@@ -1154,7 +1154,7 @@ Tuple * disntheme_t = dict_find(iter, MESSAGE_KEY_NightTheme);
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Remove Zero 24h off");
       }
     }
-  
+
 
   //Update colors
   layer_mark_dirty(s_canvas);
@@ -1163,8 +1163,13 @@ Tuple * disntheme_t = dict_find(iter, MESSAGE_KEY_NightTheme);
     }
   layer_mark_dirty(s_canvas_bt_icon);
   layer_mark_dirty(s_canvas_qt_icon);
-  
+
   layer_mark_dirty(time_area_layer);
+  
+  // Refresh precipitation display when weather data is updated
+  display_precip_amount();
+  text_layer_mark_dirty(s_step_layer);
+
   // Save the new settings to persistent storage
 
   prv_save_settings();
