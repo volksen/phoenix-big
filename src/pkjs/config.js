@@ -14,7 +14,7 @@ module.exports = [
       {
           "type": "toggle",
           "messageKey": "HealthOff",
-          "label": "Switch off Steps",
+          "label": "Disable Health Service",
           "defaultValue": true,
           "capabilities":["HEALTH"]
         },
@@ -69,9 +69,8 @@ module.exports = [
         "type": "color",
         "messageKey": "Text1Color",
         "defaultValue": "0xFFFFFF",
-        "label": "Steps Colour",
-        "allowGray":true,
-        "capabilities":["HEALTH"]
+        "label": "Precip Amount Colour",
+        "allowGray":true
       },
       {
         "type": "color",
@@ -98,7 +97,7 @@ module.exports = [
         "type": "color",
         "messageKey": "Text8Color",
         "defaultValue": "0xFFFFFF",
-        "label": "Battery Colour",
+        "label": "Precip Probability Colour",
         "allowGray":true
       },
       {
@@ -176,9 +175,8 @@ module.exports = [
         "type": "color",
         "messageKey": "Text1ColorN",
         "defaultValue": "0x000000",
-        "label": "Steps Colour",
-        "allowGray":true,
-        "capabilities":["HEALTH"]
+        "label": "Precip Amount Colour",
+        "allowGray":true
       },
          {
            "type": "color",
@@ -205,7 +203,7 @@ module.exports = [
         "type": "color",
         "messageKey": "Text8ColorN",
         "defaultValue": "0x000000",
-        "label": "Battery Colour",
+        "label": "Precip Probability Colour",
         "allowGray":true
       },
       {

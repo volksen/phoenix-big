@@ -405,8 +405,13 @@ static void get_step_count() {
 
 static void display_precip_amount() {
   // Display precipitation amount (mm) instead of steps
+  // Show daily forecast data when showWeather==2, otherwise show current
   text_layer_set_text_color(s_step_layer, ColorSelect(settings.Text1Color, settings.Text1ColorN));
-  text_layer_set_text(s_step_layer, settings.precipamountstring);
+  if (showWeather == 2) {
+    text_layer_set_text(s_step_layer, settings.dailyprecipsumstring);
+  } else {
+    text_layer_set_text(s_step_layer, settings.precipamountstring);
+  }
 }
 
 
@@ -626,8 +631,13 @@ static void layer_update_proc(Layer * layer, GContext * ctx){
   snprintf(daynow, sizeof(daynow), "%02d", daydraw);
 
   //Precipitation Probability (replaces battery)
+  // Show daily forecast data when showWeather==2, otherwise show current
   char precipprob[20];
-  snprintf(precipprob, sizeof(precipprob), "%s", settings.precipprobstring);
+  if (showWeather == 2) {
+    snprintf(precipprob, sizeof(precipprob), "%s", settings.dailyprecipprobmaxstring);
+  } else {
+    snprintf(precipprob, sizeof(precipprob), "%s", settings.precipprobstring);
+  }
 
   graphics_context_set_text_color(ctx, ColorSelect(settings.Text3Color, settings.Text3ColorN));
   graphics_draw_text(ctx, datenow, FontDaySunsetSteps, DateRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentCenter), NULL);
@@ -757,10 +767,12 @@ else if (showWeather==1) //show current weather
   graphics_draw_text(ctx2, SunsetToDraw, FontDaySunsetSteps, SunsetRect, GTextOverflowModeFill, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentCenter), NULL);
   #endif
  }
- else if (showWeather==2) //show forecast weather
+ else if (showWeather==2) //show forecast weather (temperature hi/low)
  {
+   // Show temperature hi/low (keep original)
    graphics_context_set_text_color(ctx2,ColorSelect(settings.Text7Color,settings.Text7ColorN));
    graphics_draw_text(ctx2, HiLowToDraw, FontFore, ForeRect, GTextOverflowModeFill, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentCenter), NULL);
+   // Show forecast weather icon
    graphics_context_set_text_color(ctx2,ColorSelect(settings.Text5Color,settings.Text5ColorN));
    graphics_draw_text(ctx2, ForeToDraw, FontIcon, IconNowRect, GTextOverflowModeFill, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentCenter), NULL);
    #ifdef PBL_ROUND
