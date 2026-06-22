@@ -1018,6 +1018,31 @@ if (iconfore_tuple){
   snprintf(settings.iconforestring,sizeof(settings.iconforestring),"%s",weather_conditions[(int)iconfore_tuple->value->int32]);
 }
 
+Tuple * precipamount_t = dict_find(iter, MESSAGE_KEY_PrecipAmount);
+if (precipamount_t){
+  snprintf(settings.precipamountstring, sizeof(settings.precipamountstring), "%s", precipamount_t -> value -> cstring);
+}
+
+Tuple * precipprob_t = dict_find(iter, MESSAGE_KEY_PrecipProb);
+if (precipprob_t){
+  snprintf(settings.precipprobstring, sizeof(settings.precipprobstring), "%d%%", (int)precipprob_t -> value -> int32);
+}
+
+Tuple * dailyprecipsum_t = dict_find(iter, MESSAGE_KEY_DailyPrecipSum);
+if (dailyprecipsum_t){
+  snprintf(settings.dailyprecipsumstring, sizeof(settings.dailyprecipsumstring), "%s", dailyprecipsum_t -> value -> cstring);
+}
+
+Tuple * dailypreciphours_t = dict_find(iter, MESSAGE_KEY_DailyPrecipHours);
+if (dailypreciphours_t){
+  snprintf(settings.dailypreciphoursstring, sizeof(settings.dailypreciphoursstring), "%sh", dailypreciphours_t -> value -> cstring);
+}
+
+Tuple * dailyprecipprobmax_t = dict_find(iter, MESSAGE_KEY_DailyPrecipProbMax);
+if (dailyprecipprobmax_t){
+  snprintf(settings.dailyprecipprobmaxstring, sizeof(settings.dailyprecipprobmaxstring), "%d%%", (int)dailyprecipprobmax_t -> value -> int32);
+}
+
 Tuple * frequpdate = dict_find(iter, MESSAGE_KEY_UpSlider);
 if (frequpdate){
   settings.UpSlider = (int) frequpdate -> value -> int32;
