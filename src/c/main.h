@@ -67,6 +67,12 @@ typedef struct ClaySettings {
   //char windiconavestring[6];
   //char templowstring[10];
   char temphistring[10];
+  // Precipitation data strings
+  char precipamountstring[10];
+  char precipprobstring[10];
+  char dailyprecipsumstring[10];
+  char dailypreciphoursstring[10];
+  char dailyprecipprobmaxstring[10];
  // bool Rotate;
  // bool RightLeft;
 } __attribute__((__packed__)) ClaySettings;
