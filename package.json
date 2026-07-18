@@ -1,19 +1,18 @@
 {
-    "author": "astosia",
+    "author": "volksen",
     "dependencies": {
-        "pebble-clay": "^1.0.4",
+        "@rebble/clay": "^1.0.10",
         "pebble-fctx": "^1.6.3",
         "pebble-fctx-compiler": "^1.2.2"
     },
     "keywords": [],
-    "name": "phoenix-big",
+    "name": "rainy-phoenix",
     "pebble": {
         "capabilities": [
             "location",
-            "configurable",
-            "health"
+            "configurable"
         ],
-        "displayName": "phoenix big",
+        "displayName": "rainy phoenix",
         "enableMultiJS": true,
         "messageKeys": [
             "Back1Color",
@@ -173,7 +172,7 @@
             "diorite",
             "emery"
         ],
-        "uuid": "35f12dab-4433-42ab-89c4-dda6d10ef636",
+        "uuid": "42549e7d-de63-4db1-adc1-2a4642e70fef",
         "watchapp": {
             "watchface": true
         }
