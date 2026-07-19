@@ -195,14 +195,13 @@ static void prv_default_settings()
   settings.FrameColor1 = GColorBlack;
   settings.SideColor1 = GColorBlack;
   settings.SideColor2 = GColorWhite;
-  settings.Text1Color = GColorWhite;
-  settings.Text2Color = GColorWhite;
-  settings.Text3Color = GColorWhite;
+  settings.TextRainColor = GColorWhite;
+  settings.TextDayColor = GColorWhite;
   settings.Text4Color = GColorWhite;
-  settings.Text5Color = GColorWhite;
-  settings.Text6Color = GColorWhite;
-  settings.Text7Color = GColorWhite;
-  settings.Text8Color = GColorWhite;
+  settings.TextWeatherColor = GColorWhite;
+  settings.TextDateColor = GColorWhite;
+  settings.TextTempColor = GColorWhite;
+  settings.TextRainProbColor = GColorWhite;
   settings.HourColor = GColorBlack;
   settings.MinColor = GColorWhite;
   settings.HourColorN = GColorBlack;
@@ -214,13 +213,12 @@ static void prv_default_settings()
   settings.Text2ColorN = GColorBlack;
   settings.Text3ColorN = GColorBlack;
   settings.Text4ColorN = GColorBlack;
-  settings.Text5ColorN = GColorBlack;
+  settings.TextWeatherColorN = GColorBlack;
   settings.Text6ColorN = GColorBlack;
-  settings.Text7ColorN = GColorBlack;
-  settings.Text8ColorN = GColorBlack;
+  settings.TextTempColorN = GColorBlack;
+  settings.TextRainProbColorN = GColorBlack;
   settings.UpSlider = 30;
   settings.NightTheme = false;
-  settings.HealthOff = true;
   settings.AddZero12h = false;
   settings.RemoveZero24h = false;
   settings.WeatherOn = false;
@@ -426,7 +424,7 @@ static void display_step_count()
   int hundreds2 = (s_step_count % 1000);
   //  static char s_emoji[5];
 
-  text_layer_set_text_color(s_step_layer, ColorSelect(settings.Text1Color, settings.Text1ColorN));
+  text_layer_set_text_color(s_step_layer, ColorSelect(settings.TextRainColor, settings.Text1ColorN));
 
   if (thousands > 0)
   {
@@ -675,12 +673,12 @@ static void layer_update_proc(Layer *layer, GContext *ctx)
   snprintf(battperc, sizeof(battperc), "%d", battery_level);
   strcat(battperc, "%");
 
-  graphics_context_set_text_color(ctx, ColorSelect(settings.Text3Color, settings.Text3ColorN));
+  graphics_context_set_text_color(ctx, ColorSelect(settings.TextDayColor, settings.Text3ColorN));
   graphics_draw_text(ctx, datenow, FontDaySunsetSteps, DateRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-  graphics_context_set_text_color(ctx, ColorSelect(settings.Text8Color, settings.Text8ColorN));
+  graphics_context_set_text_color(ctx, ColorSelect(settings.TextRainProbColor, settings.TextRainProbColorN));
   graphics_draw_text(ctx, battperc, FontBattery, BatteryRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 
-  graphics_context_set_text_color(ctx, ColorSelect(settings.Text6Color, settings.Text6ColorN));
+  graphics_context_set_text_color(ctx, ColorSelect(settings.TextDateColor, settings.Text6ColorN));
   graphics_draw_text(ctx, daynow, PBL_IF_ROUND_ELSE(FontDateNumber, FontDateNumber), DateRect2, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 }
 
@@ -804,9 +802,9 @@ static void layer_update_proc_sunset(Layer *layer2, GContext *ctx2)
     }
     else if (showWeather == 1) // show current weather
     {
-      graphics_context_set_text_color(ctx2, ColorSelect(settings.Text7Color, settings.Text7ColorN));
+      graphics_context_set_text_color(ctx2, ColorSelect(settings.TextTempColor, settings.TextTempColorN));
       graphics_draw_text(ctx2, TempToDraw, FontDaySunsetSteps, TempRect, GTextOverflowModeFill, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-      graphics_context_set_text_color(ctx2, ColorSelect(settings.Text5Color, settings.Text5ColorN));
+      graphics_context_set_text_color(ctx2, ColorSelect(settings.TextWeatherColor, settings.TextWeatherColorN));
       graphics_draw_text(ctx2, CondToDraw, FontIcon, IconNowRect, GTextOverflowModeFill, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 #ifdef PBL_ROUND
       graphics_context_set_text_color(ctx2, ColorSelect(settings.Text2Color, settings.Text2ColorN));
@@ -817,9 +815,9 @@ static void layer_update_proc_sunset(Layer *layer2, GContext *ctx2)
     }
     else if (showWeather == 2) // show forecast weather
     {
-      graphics_context_set_text_color(ctx2, ColorSelect(settings.Text7Color, settings.Text7ColorN));
+      graphics_context_set_text_color(ctx2, ColorSelect(settings.TextTempColor, settings.TextTempColorN));
       graphics_draw_text(ctx2, HiLowToDraw, FontFore, ForeRect, GTextOverflowModeFill, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-      graphics_context_set_text_color(ctx2, ColorSelect(settings.Text5Color, settings.Text5ColorN));
+      graphics_context_set_text_color(ctx2, ColorSelect(settings.TextWeatherColor, settings.TextWeatherColorN));
       graphics_draw_text(ctx2, ForeToDraw, FontIcon, IconNowRect, GTextOverflowModeFill, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 #ifdef PBL_ROUND
       graphics_context_set_text_color(ctx2, ColorSelect(settings.Text2Color, settings.Text2ColorN));
@@ -848,7 +846,7 @@ static void layer_update_proc_bt(Layer *layer3, GContext *ctx3)
   onreconnection(BTOn, connection_service_peek_pebble_app_connection());
   bluetooth_callback(connection_service_peek_pebble_app_connection());
 
-  graphics_context_set_text_color(ctx3, ColorSelect(settings.Text3Color, settings.Text3ColorN));
+  graphics_context_set_text_color(ctx3, ColorSelect(settings.TextDayColor, settings.Text3ColorN));
   graphics_draw_text(ctx3, "z", FontIcon2, BTIconRect, GTextOverflowModeFill, GTextAlignmentCenter, NULL);
 }
 
@@ -868,7 +866,7 @@ static void layer_update_proc_qt(Layer *layer4, GContext *ctx4)
 
   quiet_time_icon();
 
-  graphics_context_set_text_color(ctx4, ColorSelect(settings.Text3Color, settings.Text3ColorN));
+  graphics_context_set_text_color(ctx4, ColorSelect(settings.TextDayColor, settings.Text3ColorN));
   graphics_draw_text(ctx4, "\U0000E061", FontIcon2, QTIconRect, GTextOverflowModeFill, GTextAlignmentCenter, NULL);
 }
 
@@ -931,7 +929,7 @@ static void prv_inbox_received_handler(DictionaryIterator *iter, void *context)
   Tuple *tx1_color_t = dict_find(iter, MESSAGE_KEY_Text1Color);
   if (tx1_color_t)
   {
-    settings.Text1Color = GColorFromHEX(tx1_color_t->value->int32);
+    settings.TextRainColor = GColorFromHEX(tx1_color_t->value->int32);
   }
   Tuple *ntx1_color_t = dict_find(iter, MESSAGE_KEY_Text1ColorN);
   if (ntx1_color_t)
@@ -960,11 +958,6 @@ static void prv_inbox_received_handler(DictionaryIterator *iter, void *context)
     settings.MinColorN = GColorFromHEX(ntmin_color_t->value->int32);
   }
   ///////////////////////////////
-  Tuple *tx2_color_t = dict_find(iter, MESSAGE_KEY_Text2Color);
-  if (tx2_color_t)
-  {
-    settings.Text2Color = GColorFromHEX(tx2_color_t->value->int32);
-  }
   Tuple *ntx2_color_t = dict_find(iter, MESSAGE_KEY_Text2ColorN);
   if (ntx2_color_t)
   {
@@ -973,7 +966,7 @@ static void prv_inbox_received_handler(DictionaryIterator *iter, void *context)
   Tuple *tx3_color_t = dict_find(iter, MESSAGE_KEY_Text3Color);
   if (tx3_color_t)
   {
-    settings.Text3Color = GColorFromHEX(tx3_color_t->value->int32);
+    settings.TextDayColor = GColorFromHEX(tx3_color_t->value->int32);
   }
   Tuple *ntx3_color_t = dict_find(iter, MESSAGE_KEY_Text3ColorN);
   if (ntx3_color_t)
@@ -990,20 +983,20 @@ static void prv_inbox_received_handler(DictionaryIterator *iter, void *context)
   {
     settings.Text4ColorN = GColorFromHEX(ntx4_color_t->value->int32);
   }
-  Tuple *tx5_color_t = dict_find(iter, MESSAGE_KEY_Text5Color);
+  Tuple *tx5_color_t = dict_find(iter, MESSAGE_KEY_TextWeatherColor);
   if (tx5_color_t)
   {
-    settings.Text5Color = GColorFromHEX(tx5_color_t->value->int32);
+    settings.TextWeatherColor = GColorFromHEX(tx5_color_t->value->int32);
   }
-  Tuple *ntx5_color_t = dict_find(iter, MESSAGE_KEY_Text5ColorN);
+  Tuple *ntx5_color_t = dict_find(iter, MESSAGE_KEY_TextWeatherColorN);
   if (ntx5_color_t)
   {
-    settings.Text5ColorN = GColorFromHEX(ntx5_color_t->value->int32);
+    settings.TextWeatherColorN = GColorFromHEX(ntx5_color_t->value->int32);
   }
   Tuple *tx6_color_t = dict_find(iter, MESSAGE_KEY_Text6Color);
   if (tx6_color_t)
   {
-    settings.Text6Color = GColorFromHEX(tx6_color_t->value->int32);
+    settings.TextDateColor = GColorFromHEX(tx6_color_t->value->int32);
   }
   Tuple *ntx6_color_t = dict_find(iter, MESSAGE_KEY_Text6ColorN);
   if (ntx6_color_t)
@@ -1011,26 +1004,26 @@ static void prv_inbox_received_handler(DictionaryIterator *iter, void *context)
     settings.Text6ColorN = GColorFromHEX(ntx6_color_t->value->int32);
   }
 
-  Tuple *tx7_color_t = dict_find(iter, MESSAGE_KEY_Text7Color);
+  Tuple *tx7_color_t = dict_find(iter, MESSAGE_KEY_TextTempColor);
   if (tx7_color_t)
   {
-    settings.Text7Color = GColorFromHEX(tx7_color_t->value->int32);
+    settings.TextTempColor = GColorFromHEX(tx7_color_t->value->int32);
   }
-  Tuple *ntx7_color_t = dict_find(iter, MESSAGE_KEY_Text7ColorN);
+  Tuple *ntx7_color_t = dict_find(iter, MESSAGE_KEY_TextTempColorN);
   if (ntx7_color_t)
   {
-    settings.Text7ColorN = GColorFromHEX(ntx7_color_t->value->int32);
+    settings.TextTempColorN = GColorFromHEX(ntx7_color_t->value->int32);
   }
 
-  Tuple *tx8_color_t = dict_find(iter, MESSAGE_KEY_Text8Color);
+  Tuple *tx8_color_t = dict_find(iter, MESSAGE_KEY_TextRainProbColor);
   if (tx8_color_t)
   {
-    settings.Text8Color = GColorFromHEX(tx8_color_t->value->int32);
+    settings.TextRainProbColor = GColorFromHEX(tx8_color_t->value->int32);
   }
-  Tuple *ntx8_color_t = dict_find(iter, MESSAGE_KEY_Text8ColorN);
+  Tuple *ntx8_color_t = dict_find(iter, MESSAGE_KEY_TextRainProbColorN);
   if (ntx8_color_t)
   {
-    settings.Text8ColorN = GColorFromHEX(ntx8_color_t->value->int32);
+    settings.TextRainProbColorN = GColorFromHEX(ntx8_color_t->value->int32);
   }
   // Control of data from http
   // Weather Cond
@@ -1113,25 +1106,6 @@ static void prv_inbox_received_handler(DictionaryIterator *iter, void *context)
     }
     else
       settings.NightTheme = true;
-  }
-
-  Tuple *health_t = dict_find(iter, MESSAGE_KEY_HealthOff);
-  if (health_t)
-  {
-    if (health_t->value->int32 == 0)
-    {
-      settings.HealthOff = false;
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Health on");
-      get_step_count();
-      display_step_count();
-    }
-    else
-    {
-      settings.HealthOff = true;
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Health off");
-      snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
-               "%s", "");
-    }
   }
 
   Tuple *weatheron_t = dict_find(iter, MESSAGE_KEY_WeatherOn);
@@ -1477,12 +1451,6 @@ static void init()
   main_window_push();
   // Register with Event Services
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
-  if (!settings.HealthOff && step_data_is_available())
-  {
-    health_service_events_subscribe(health_handler, NULL);
-    health_handler(HealthEventSignificantUpdate, NULL);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "health is on, and steps data is subscribed");
-  }
   connection_service_subscribe((ConnectionHandlers){
       .pebble_app_connection_handler = bluetooth_vibe_icon});
   bluetooth_vibe_icon(connection_service_peek_pebble_app_connection());

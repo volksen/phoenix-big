@@ -1,4 +1,7 @@
-#phoenix_big
+# rainy phoenix
+
+Fork of the awesome [phoenix-big](https://github.com/astosia/phoenix_big) by Astosia. Removed many settings and features that I don't need and added rain and rain probability.
+
 Pebble watchface, now updated with current weather conditions
 
 Aplite & Diorite (OG, Steel, and Pebble 2)- steps not on OG & Steel

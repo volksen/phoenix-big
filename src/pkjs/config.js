@@ -10,14 +10,7 @@ module.exports = [
       {
         "type": "heading",
         "defaultValue": "Theme settings"
-      },
-      {
-        "type": "toggle",
-        "messageKey": "HealthOff",
-        "label": "Switch off Steps",
-        "defaultValue": true,
-        "capabilities": ["HEALTH"]
-      },
+      }
       {
         "type": "toggle",
         "messageKey": "AddZero12h",
@@ -28,7 +21,7 @@ module.exports = [
         "type": "toggle",
         "messageKey": "RemoveZero24h",
         "label": "Remove leading zero from 24h time",
-        "defaultValue": false
+        "defaultValue": true
       },
       {
         "type": "color",
@@ -67,166 +60,43 @@ module.exports = [
       },
       {
         "type": "color",
-        "messageKey": "Text1Color",
-        "defaultValue": "0xFFFFFF",
-        "label": "Steps Colour",
-        "allowGray": true,
-        "capabilities": ["HEALTH"]
-      },
-      {
-        "type": "color",
-        "messageKey": "Text3Color",
+        "messageKey": "TextDayColor",
         "defaultValue": "0xFFFFFF",
         "label": "Day Colour",
         "allowGray": true
       },
       {
         "type": "color",
-        "messageKey": "Text6Color",
+        "messageKey": "TextDateColor",
         "defaultValue": "0xFFFFFF",
         "label": "Date Colour",
         "allowGray": true
       },
       {
         "type": "color",
-        "messageKey": "Text2Color",
+        "messageKey": "TextRainColor",
         "defaultValue": "0xFFFFFF",
-        "label": "Sunset/Sunrise Colour",
+        "label": "Rain Colour",
         "allowGray": true
       },
       {
         "type": "color",
-        "messageKey": "Text8Color",
+        "messageKey": "TextRainProbColor",
         "defaultValue": "0xFFFFFF",
-        "label": "Battery Colour",
+        "label": "Rain Prob Colour",
         "allowGray": true
       },
       {
         "type": "color",
-        "messageKey": "Text4Color",
-        "defaultValue": "0xFFFFFF",
-        "label": "Moon Colour",
-        "allowGray": true
-      },
-      {
-        "type": "color",
-        "messageKey": "Text5Color",
+        "messageKey": "TextWeatherColor",
         "defaultValue": "0xFFFFFF",
         "label": "Weather Icon Colour",
         "allowGray": true
       },
       {
         "type": "color",
-        "messageKey": "Text7Color",
+        "messageKey": "TextTempColor",
         "defaultValue": "0xFFFFFF",
-        "label": "Temperature Colour",
-        "allowGray": true
-      },
-    ]
-  },
-  {
-    "type": "section",
-    "items": [
-      {
-        "type": "heading",
-        "defaultValue": "Night Theme",
-        "size": 4
-      },
-      {
-        "type": "toggle",
-        "messageKey": "NightTheme",
-        "label": "Activate Night Theme",
-        "defaultValue": false,
-      },
-      {
-        "type": "color",
-        "messageKey": "FrameColor1N",
-        "defaultValue": "0xFFFFFF",
-        "label": "Left Sidebar Colour",
-        "capabilities": ["ROUND"]
-      },
-      {
-        "type": "color",
-        "messageKey": "SideColor1N",
-        "defaultValue": "0xFFFFFF",
-        "label": "Right Background Colour",
-        "allowGray": true
-      },
-      {
-        "type": "color",
-        "messageKey": "SideColor2N",
-        "defaultValue": "0xFFFFFF",
-        "label": "Left Background Colour",
-        "allowGray": true
-      },
-      {
-        "type": "color",
-        "messageKey": "HourColorN",
-        "defaultValue": "0x000000",
-        "label": "Hour Text Colour",
-        "allowGray": true
-      },
-      {
-        "type": "color",
-        "messageKey": "MinColorN",
-        "defaultValue": "0x000000",
-        "label": "Minute Text Colour",
-        "allowGray": true
-      },
-      {
-        "type": "color",
-        "messageKey": "Text1ColorN",
-        "defaultValue": "0x000000",
-        "label": "Steps Colour",
-        "allowGray": true,
-        "capabilities": ["HEALTH"]
-      },
-      {
-        "type": "color",
-        "messageKey": "Text3ColorN",
-        "defaultValue": "0x000000",
-        "label": "Day Colour",
-        "allowGray": true
-      },
-      {
-        "type": "color",
-        "messageKey": "Text6ColorN",
-        "defaultValue": "0x000000",
-        "label": "Date Colour",
-        "allowGray": true
-      },
-      {
-        "type": "color",
-        "messageKey": "Text2ColorN",
-        "defaultValue": "0x000000",
-        "label": "Sunset/Sunrise Colour",
-        "allowGray": true
-      },
-      {
-        "type": "color",
-        "messageKey": "Text8ColorN",
-        "defaultValue": "0x000000",
-        "label": "Battery Colour",
-        "allowGray": true
-      },
-      {
-        "type": "color",
-        "messageKey": "Text4ColorN",
-        "defaultValue": "0x000000",
-        "label": "Moon Colour",
-        "allowGray": true
-      },
-      {
-        "type": "color",
-        "messageKey": "Text5ColorN",
-        "defaultValue": "0x000000",
-        "label": "Weather Icon Colour",
-        "allowGray": true
-      },
-      {
-        "type": "color",
-        "messageKey": "Text7ColorN",
-        "defaultValue": "0x000000",
         "label": "Temperature Colour",
         "allowGray": true
       },
@@ -238,71 +108,7 @@ module.exports = [
       {
         "type": "heading",
         "defaultValue": "Weather settings",
-        "description": "Shake or tap to change view between Sunset/Sunrise, Current Weather and Forecast Weather",
-      },
-      {
-        "type": "toggle",
-        "messageKey": "SunsetOn",
-        "label": "Turn Sunset/Sunrise & Moonphase On",
-        "defaultValue": true,
-      },
-      {
-        "type": "toggle",
-        "messageKey": "WeatherOn",
-        "label": "Turn Current Weather On",
-        "defaultValue": false,
-      },
-      {
-        "type": "toggle",
-        "messageKey": "ForecastWeatherOn",
-        "label": "Turn Forecast Weather On",
-        "defaultValue": false,
-      },
-      {
-        "type": "toggle",
-        "messageKey": "WeatherUnit",
-        "label": "Temperature in Fahrenheit",
-        "defaultValue": false,
-      },
-      /*  {
-        "type": "select",
-        "messageKey": "WindUnit",
-        "label": "Wind speed",
-        "defaultValue": "knots",
-           "options": [
-          {
-            "label": "knots",
-            "value": "kts"
-          },
-          {
-            "label": "miles per hour",
-            "value": "mph"
-          },
-             {
-            "label": "metres per second",
-            "value": "ms"
-          },
-          {
-            "label": "kilometres per hour",
-            "value": "kph"
-          }
-        ]
-      },*/
-      {
-        "type": "select",
-        "messageKey": "WeatherProv",
-        "defaultValue": "ds",
-        "label": "Weather Provider",
-        "options": [
-          {
-            "label": "Open-Meteo",
-            "value": "ds"
-          },
-          {
-            "label": "OpenWeatherMap",
-            "value": "owm"
-          }
-        ]
+        "description": "Shake or tap to change view between Current Weather and Forecast Weather",
       },
       {
         "type": "input",
@@ -324,19 +130,9 @@ module.exports = [
         }
       },
       {
-        "type": "input",
-        "messageKey": "APIKEY_User",
-        "defaultValue": "",
-        "label": "API Key",
-        "description": "Weather data uses Open-Meteo by default which does not require an API key.  If you prefer OpenWeatherMap, you can <a href =https://home.openweathermap.org/users/sign_up/>register for a free personal API key here</a>.",
-        "attributes": {
-          "placeholder": "Paste OpenWeatherMap API Key, leave blank for Open-Meteo"
-        }
-      },
-      {
         "type": "slider",
         "messageKey": "UpSlider",
-        "defaultValue": 30,
+        "defaultValue": 15,
         "label": "Update frequency (minutes)",
         "description": "More frequent requests will drain your phone battery more quickly",
         "min": 15,
@@ -348,15 +144,5 @@ module.exports = [
   {
     "type": "submit",
     "defaultValue": "SAVE"
-  },
-  {
-    "type": "heading",
-    "defaultValue": "version v3.6",
-    "size": 6
-  },
-  {
-    "type": "heading",
-    "defaultValue": "Made in UK",
-    "size": 6
   }
 ];
