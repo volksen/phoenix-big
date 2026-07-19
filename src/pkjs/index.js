@@ -96,7 +96,7 @@ function fetchWeatherData(pos) {
         localStorage.setItem('lat', lat);
         localStorage.setItem('lon', lon);
     } else { // Last known position
-        lat = localStorage.getItem('lat');
+        lat = localStorage.getItem('lat'); // Returns null if not set
         lon = localStorage.getItem('lon');
     }
 
@@ -132,34 +132,46 @@ function fetchWeatherData(pos) {
         }
     });
 }
-// Define our geolocation settings once
-var locationOptions = {
-    enableHighAccuracy: true,
-    timeout: 15000,
-    maximumAge: 60000 // 1 minute (allows a slightly cached location to save battery)
-};
+
 
 function locationError(err) {
     console.log("Error requesting geolocation!");
-    Pebble.sendAppMessage({ "NameLocation": "" },
-        function () { },
-        function () { console.log("Null key error sending to Pebble!"); }
+    fetchWeatherData(null);
+}
+
+function getWeather() {
+    navigator.geolocation.getCurrentPosition(
+        fetchWeatherData,
+        locationError,
+        {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 60000 // 1 minute (allows a slightly cached location to save battery)
+        }
     );
 }
 
+
 // --- Listeners ---
-
-Pebble.addEventListener('ready', function () {
+Pebble.addEventListener('ready', 
+    function (e) {
     console.log("Starting Watchface!");
-    navigator.geolocation.getCurrentPosition(fetchWeatherData, locationError, locationOptions);
-});
+    getWeather();
+}
+);
 
-Pebble.addEventListener('appmessage', function () {
-    console.log("Requesting geoposition!");
-    navigator.geolocation.getCurrentPosition(fetchWeatherData, locationError, locationOptions);
-});
+Pebble.addEventListener('appmessage',
+    function (e) {
+        console.log("Requesting geoposition!");
+        if (e.payload['REQUEST_WEATHER']) {
+            getWeather();
+        }
+    }
+);
 
-Pebble.addEventListener('webviewclosed', function () {
-    console.log("Updating config!");
-    navigator.geolocation.getCurrentPosition(fetchWeatherData, locationError, locationOptions);
-});
+Pebble.addEventListener('webviewclosed',
+    function (e) {
+        console.log("Updating config!");
+        getWeather();
+    }
+);

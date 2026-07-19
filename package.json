@@ -28,6 +28,7 @@
             "TextWeatherColor",
             "TextTempColor",
             "bluetoothvibe",
+            "REQUEST_WEATHER",
             "TempNow",
             "IconNow",
             "TempFore",
