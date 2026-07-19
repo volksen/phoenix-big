@@ -7,22 +7,24 @@
 #include <pebble-fctx/ffont.h>
 
 static uint32_t s_last_tap_time = 0;
-#define TAP_COOLDOWN_MS 1000 // 1 second cooldown
+#define TAP_COOLDOWN_MS 1500 // 1.5 second cooldown
 
 // Static and initial vars
 static GFont
     FontDateNumber,
-    FontBattery, FontIcon, FontIcon2, FontWeatherIcons, FontFore;
+    FontDay, FontRain,
+    FontRainProb, FontIcon, FontIcon2, FontWeatherIcons, FontFore;
 
 FFont *time_font;
 
 static Window *s_window;
 
 static Layer *s_canvas_background;
-static Layer *s_date_canvas;
+static Layer *s_canvas_date;
 static Layer *s_canvas_bt_icon;
 static Layer *s_canvas_qt_icon;
-static Layer *s_rain_layer;
+static Layer *s_canvas_rain;
+static Layer *s_canvas_weather;
 
 Layer *time_area_layer;
 
@@ -167,11 +169,16 @@ static void prv_default_settings()
   settings.TextRainProbColor = GColorWhite;
   settings.TextWeatherColor = GColorWhite;
   settings.TextTempColor = GColorWhite;
-  settings.UpdateSlider = 15;
+  settings.UpdateSlider = 30;
+  strncpy(settings.tempForeString, "NA", sizeof(settings.tempForeString) - 1);
+  strncpy(settings.iconNowString, "", sizeof(settings.iconNowString) - 1);
+  strncpy(settings.iconForeString, "", sizeof(settings.iconForeString) - 1);
+  strncpy(settings.rainNowString, "NA", sizeof(settings.rainNowString) - 1);
+  strncpy(settings.rainSumForeString, "NA", sizeof(settings.rainSumForeString) - 1);
+  strncpy(settings.rainProbNowString, "NA", sizeof(settings.rainProbNowString) - 1);
+  strncpy(settings.rainProbMaxForeString, "NA", sizeof(settings.rainProbMaxForeString) - 1);
 }
 bool BTOn = true;
-bool GPSOn = true;
-bool IsNightNow = false;
 int s_countdown = 0;
 int showForecast = 0;
 
@@ -210,7 +217,9 @@ static void accel_tap_handler(AccelAxisType axis, int32_t direction)
   s_last_tap_time = now;
   showForecast = (showForecast >= 1) ? 0 : showForecast + 1;
 
-  layer_mark_dirty(s_rain_canvas);
+  layer_mark_dirty(s_canvas_weather);
+  layer_mark_dirty(s_canvas_rain);
+
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Valid Tap! showForecast: %d", (int)showForecast);
 }
 
@@ -222,14 +231,7 @@ static void bluetooth_callback(bool connected)
 
 static void bluetooth_vibe_icon(bool connected)
 {
-
   layer_set_hidden(s_canvas_bt_icon, connected);
-
-  // if (!connected && !quiet_time_is_active())
-  // {
-  //   // Issue a vibrating alert
-  //   vibes_double_pulse();
-  // }
 }
 
 static void quiet_time_icon()
@@ -456,98 +458,91 @@ static void layer_update_date_proc(Layer *layer, GContext *ctx)
   graphics_draw_text(ctx, daynow, PBL_IF_ROUND_ELSE(FontDateNumber, FontDateNumber), DateDayRect2, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 }
 
-static void layer_update_rain(Layer *layer, GContext *ctx) {
-
-#if defined(PBL_PLATFORM_EMERY)
-  GRect RainRect = GRect(100, 205, 50, 27);
-  GRect RainProbRect = GRect(100, 205, 50, 27);
-
-#else
-  GRect RainProbRect = PBL_IF_ROUND_ELSE(
-      GRect(100, 136 + 12, 50, 20),
-      GRect(0 + 108 - 19 - 18, 150, 38, 20));
-#endif
-  char RainToDraw[20];
-  char RainProbToDraw[20];
-
-  // snprintf(ForeToDraw, sizeof(ForeToDraw), "%s", settings.iconForeString);
-  // snprintf(HiLowToDraw, sizeof(HiLowToDraw), "%s", settings.tempForeString);
-
-  text_layer_set_text_color(s_rain_layer, settings.TextRainColor);
-  text_layer_set_text_color(s_rain_prob_layer, settings.TextRainProbColor);
-
-  if (showForecast == 0) // show current weather
-  {
-    graphics_context_set_text_color(ctx2, settings.TextTempColor);
-    graphics_draw_text(ctx2, TempToDraw, FontDay, TempRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-    graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
-    graphics_draw_text(ctx2, CondToDraw, FontIcon, IconNowRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-
-    // TODO
-
-    text_layer_set_text(s_rain_layer, settings.rainNowString);
-    text_layer_set_text(s_rain_prob_layer, settings.rainProbNowString);
-
-#ifdef PBL_ROUND
-    graphics_context_set_text_color(ctx2, settings.Text2Color);
-    graphics_draw_text(ctx2, SunsetIconToDraw, FontWeatherIcons, SunsetIconRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentLeft, GTextAlignmentCenter), NULL);
-    graphics_context_set_text_color(ctx2, settings.Text2Color);
-    graphics_draw_text(ctx2, SunsetToDraw, FontDay, SunsetRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-#endif
-  }
-  else if (showForecast == 1) // show forecast weather
-  {
-    graphics_context_set_text_color(ctx2, settings.TextTempColor);
-    graphics_draw_text(ctx2, HiLowToDraw, FontFore, ForeRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-    graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
-    graphics_draw_text(ctx2, ForeToDraw, FontIcon, IconNowRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-
-    // TODO
-    text_layer_set_text(s_rain_layer, settings.rainSumForeString);
-    text_layer_set_text(s_rain_prob_layer, settings.rainProbMaxForeString);
-
-#ifdef PBL_ROUND
-    graphics_context_set_text_color(ctx2, settings.Text2Color);
-    graphics_draw_text(ctx2, SunsetIconToDraw, FontWeatherIcons, SunsetIconRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentLeft, GTextAlignmentCenter), NULL);
-    graphics_context_set_text_color(ctx2, settings.Text2Color);
-    graphics_draw_text(ctx2, SunsetToDraw, FontDay, SunsetRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-#endif
-  }
+static void layer_update_rain(Layer *layer, GContext *ctx)
+{
 
   // #if defined(PBL_PLATFORM_EMERY)
 
-  //   s_step_layer = text_layer_create(GRect(87, 178, 75, 27));
-  //   text_layer_set_background_color(s_step_layer, GColorClear);
-  //   text_layer_set_font(s_step_layer,
+  //   s_canvas_rain = text_layer_create(GRect(87, 178, 75, 27));
+  //   text_layer_set_background_color(s_canvas_rain, GColorClear);
+  //   text_layer_set_font(s_canvas_rain,
   //                       FontDay);
-  //   text_layer_set_text_alignment(s_step_layer, GTextAlignmentCenter);
-  //   layer_add_child(window_layer, text_layer_get_layer(s_step_layer));
+  //   text_layer_set_text_alignment(s_canvas_rain, GTextAlignmentCenter);
+  //   layer_add_child(window_layer, text_layer_get_layer(s_canvas_rain));
 
   // #else
-  //   s_step_layer = text_layer_create(PBL_IF_ROUND_ELSE(
+  //   s_canvas_rain = text_layer_create(PBL_IF_ROUND_ELSE(
   //       GRect(100, 28, 72, 20),
   //       GRect(0 + 108 - 27 - 18, 132, 54, 20)));
-  //   text_layer_set_background_color(s_step_layer, GColorClear);
-  //   text_layer_set_font(s_step_layer,
+  //   text_layer_set_background_color(s_canvas_rain, GColorClear);
+  //   text_layer_set_font(s_canvas_rain,
   //                       FontDay);
-  //   text_layer_set_text_alignment(s_step_layer, (PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter)));
-  //   layer_add_child(window_layer, text_layer_get_layer(s_step_layer));
+  //   text_layer_set_text_alignment(s_canvas_rain, (PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter)));
+  //   layer_add_child(window_layer, text_layer_get_layer(s_canvas_rain));
   // #endif
 
   // todo HERE HERE
   //  rain probability
   //  snprintf(battperc, sizeof(battperc), "%d", battery_level);
   //  strcat(battperc, "%");
-  //  graphics_draw_text(ctx, settings.battperc, FontBattery, RainProbRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+  //  graphics_draw_text(ctx, settings.battperc, FontRainProb, RainProbRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
   //  graphics_context_set_text_color(ctx, settings.TextRainProbColor);
+
+#if defined(PBL_PLATFORM_EMERY)
+  GRect RainRect = GRect(87, 178, 75, 27);
+  GRect RainProbRect = GRect(100, 205, 50, 27);
+
+#else
+  GRect RainRect = PBL_IF_ROUND_ELSE(
+      GRect(100, 28, 72, 20),
+      GRect(0 + 108 - 27 - 18, 132, 54, 20));
+
+  GRect RainProbRect = PBL_IF_ROUND_ELSE(
+      GRect(100, 136 + 12, 50, 20),
+      GRect(0 + 108 - 19 - 18, 150, 38, 20));
+#endif
+  // char RainToDraw[20];
+  // char RainProbToDraw[20];
+
+  // snprintf(RainToDraw, sizeof(RainToDraw), "%s", settings.rainNowString);
+  // snprintf(RainProbToDraw, sizeof(RainProbToDraw), "%s", settings.rainProbNowString);
+
+  if (showForecast == 0) // show current weather
+  {
+    graphics_context_set_text_color(ctx, settings.TextRainColor);
+    graphics_draw_text(ctx, settings.rainNowString, FontRain, RainRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+    graphics_context_set_text_color(ctx, settings.TextRainProbColor);
+    graphics_draw_text(ctx, settings.rainProbNowString, FontRainProb, RainProbRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+
+#ifdef PBL_ROUND
+    graphics_context_set_text_color(ctx, settings.TextRainColor);
+    graphics_draw_text(ctx, settings.rainNowString, FontRain, RainRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentLeft, GTextAlignmentCenter), NULL);
+    graphics_context_set_text_color(ctx, settings.TextRainProbColor);
+    graphics_draw_text(ctx, settings.rainProbNowString, FontRainProb, RainProbRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+#endif
+  }
+  else if (showForecast == 1) // show forecast weather
+  {
+    graphics_context_set_text_color(ctx, settings.TextTempColor);
+    graphics_draw_text(ctx, settings.rainSumForeString, FontRain, RainRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+    graphics_context_set_text_color(ctx, settings.TextWeatherColor);
+    graphics_draw_text(ctx, settings.rainProbMaxForeString, FontRainProb, RainProbRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+
+#ifdef PBL_ROUND
+    graphics_context_set_text_color(ctx, settings.TextRainColor);
+    graphics_draw_text(ctx, settings.rainSumForeString, FontWeatherIcons, RainRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentLeft, GTextAlignmentCenter), NULL);
+    graphics_context_set_text_color(ctx, settings.TextRainProbColor);
+    graphics_draw_text(ctx, settings.rainProbMaxForeString, FontDay, RainProbRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+#endif
+  }
 }
 
 static void layer_update_proc_weather(Layer *layer2, GContext *ctx2)
@@ -564,7 +559,7 @@ static void layer_update_proc_weather(Layer *layer2, GContext *ctx2)
       GRect(0 + 108 + 18 - 28, 146, 54, 20));
 
   // weather condition icon
-  GRect IconNowRect = PBL_IF_ROUND_ELSE(
+  GRect IconRect = PBL_IF_ROUND_ELSE(
       GRect(28 - 20, 139 - 100 + 6, 28, 20),
       GRect(0 + 108 - 19 + 18, 16 + 93 + 10, 38, 40));
 #endif
@@ -578,41 +573,41 @@ static void layer_update_proc_weather(Layer *layer2, GContext *ctx2)
   snprintf(ForeToDraw, sizeof(ForeToDraw), "%s", settings.iconForeString);
   snprintf(HiLowToDraw, sizeof(HiLowToDraw), "%s", settings.tempForeString);
 
-
   if (showForecast == 0) // show current weather
   {
     graphics_context_set_text_color(ctx2, settings.TextTempColor);
     graphics_draw_text(ctx2, TempToDraw, FontDay, TempRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+
     graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
-    graphics_draw_text(ctx2, CondToDraw, FontIcon, IconNowRect, GTextOverflowModeFill,
+    graphics_draw_text(ctx2, CondToDraw, FontIcon, IconRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 
-
 #ifdef PBL_ROUND
-    graphics_context_set_text_color(ctx2, settings.Text2Color);
-    graphics_draw_text(ctx2, SunsetIconToDraw, FontWeatherIcons, SunsetIconRect, GTextOverflowModeFill,
+    graphics_context_set_text_color(ctx2, settings.TextTempColor);
+    graphics_draw_text(ctx2, TempToDraw, FontWeatherIcons, TempRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentLeft, GTextAlignmentCenter), NULL);
-    graphics_context_set_text_color(ctx2, settings.Text2Color);
-    graphics_draw_text(ctx2, SunsetToDraw, FontDay, SunsetRect, GTextOverflowModeFill,
+
+    graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
+    graphics_draw_text(ctx2, CondToDraw, FontDay, IconRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 #endif
   }
   else if (showForecast == 1) // show forecast weather
   {
     graphics_context_set_text_color(ctx2, settings.TextTempColor);
-    graphics_draw_text(ctx2, HiLowToDraw, FontFore, ForeRect, GTextOverflowModeFill,
+    graphics_draw_text(ctx2, HiLowToDraw, FontFore, TempRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
     graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
-    graphics_draw_text(ctx2, ForeToDraw, FontIcon, IconNowRect, GTextOverflowModeFill,
+    graphics_draw_text(ctx2, ForeToDraw, FontIcon, IconRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 
 #ifdef PBL_ROUND
-    graphics_context_set_text_color(ctx2, settings.Text2Color);
-    graphics_draw_text(ctx2, SunsetIconToDraw, FontWeatherIcons, SunsetIconRect, GTextOverflowModeFill,
+    graphics_context_set_text_color(ctx2, settings.TextTempColor);
+    graphics_draw_text(ctx2, HiLowToDraw, FontWeatherIcons, TempRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentLeft, GTextAlignmentCenter), NULL);
-    graphics_context_set_text_color(ctx2, settings.Text2Color);
-    graphics_draw_text(ctx2, SunsetToDraw, FontDay, SunsetRect, GTextOverflowModeFill,
+    graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
+    graphics_draw_text(ctx2, ForeToDraw, FontDay, IconRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 #endif
   }
@@ -676,16 +671,22 @@ static void prv_save_settings()
 // Handle the response from AppMessage
 static void prv_inbox_received_handler(DictionaryIterator *iter, void *context)
 {
-  bool weather_options_changed = false;
+  Tuple *addzero12_t = dict_find(iter, MESSAGE_KEY_AddZero12h);
+  if (addzero12_t)
+  {
+    settings.AddZero12h = addzero12_t->value->int32 == 1;
+  }
+
+  Tuple *remzero24_t = dict_find(iter, MESSAGE_KEY_RemoveZero24h);
+  if (remzero24_t)
+  {
+    settings.RemoveZero24h = remzero24_t->value->int32 == 1;
+  }
+
   Tuple *fr1_color_t = dict_find(iter, MESSAGE_KEY_RoundLeftFrameColor1);
   if (fr1_color_t)
   {
     settings.RoundLeftFrameColor1 = GColorFromHEX(fr1_color_t->value->int32);
-  }
-  Tuple *nfr1_color_t = dict_find(iter, MESSAGE_KEY_RoundLeftFrameColor1N);
-  if (nfr1_color_t)
-  {
-    settings.RoundLeftFrameColor1N = GColorFromHEX(nfr1_color_t->value->int32);
   }
   ///////////
   Tuple *sd1_color_t = dict_find(iter, MESSAGE_KEY_MinBackColor1);
@@ -693,31 +694,10 @@ static void prv_inbox_received_handler(DictionaryIterator *iter, void *context)
   {
     settings.MinBackColor1 = GColorFromHEX(sd1_color_t->value->int32);
   }
-  Tuple *nsd1_color_t = dict_find(iter, MESSAGE_KEY_MinBackColor1N);
-  if (nsd1_color_t)
-  {
-    settings.MinBackColor1N = GColorFromHEX(nsd1_color_t->value->int32);
-  }
   Tuple *sd2_color_t = dict_find(iter, MESSAGE_KEY_HourBackColor2);
   if (sd2_color_t)
   {
     settings.HourBackColor2 = GColorFromHEX(sd2_color_t->value->int32);
-  }
-  Tuple *nsd2_color_t = dict_find(iter, MESSAGE_KEY_HourBackColor2N);
-  if (nsd2_color_t)
-  {
-    settings.HourBackColor2N = GColorFromHEX(nsd2_color_t->value->int32);
-  }
-  ////////////
-  Tuple *tx1_color_t = dict_find(iter, MESSAGE_KEY_Text1Color);
-  if (tx1_color_t)
-  {
-    settings.TextRainColor = GColorFromHEX(tx1_color_t->value->int32);
-  }
-  Tuple *ntx1_color_t = dict_find(iter, MESSAGE_KEY_Text1ColorN);
-  if (ntx1_color_t)
-  {
-    settings.Text1ColorN = GColorFromHEX(ntx1_color_t->value->int32);
   }
   ///////////////////////////////
   Tuple *hr_color_t = dict_find(iter, MESSAGE_KEY_HourColor);
@@ -725,289 +705,113 @@ static void prv_inbox_received_handler(DictionaryIterator *iter, void *context)
   {
     settings.HourColor = GColorFromHEX(hr_color_t->value->int32);
   }
-  Tuple *nthr_color_t = dict_find(iter, MESSAGE_KEY_HourColorN);
-  if (nthr_color_t)
-  {
-    settings.HourColorN = GColorFromHEX(nthr_color_t->value->int32);
-  }
   Tuple *min_color_t = dict_find(iter, MESSAGE_KEY_MinColor);
   if (min_color_t)
   {
     settings.MinColor = GColorFromHEX(min_color_t->value->int32);
   }
-  Tuple *ntmin_color_t = dict_find(iter, MESSAGE_KEY_MinColorN);
-  if (ntmin_color_t)
+  //////////////
+  Tuple *tx_day_color_t = dict_find(iter, MESSAGE_KEY_TextDayColor);
+  if (tx_day_color_t)
   {
-    settings.MinColorN = GColorFromHEX(ntmin_color_t->value->int32);
+    settings.TextDayColor = GColorFromHEX(tx_day_color_t->value->int32);
   }
-  ///////////////////////////////
-  Tuple *ntx2_color_t = dict_find(iter, MESSAGE_KEY_Text2ColorN);
-  if (ntx2_color_t)
+  Tuple *tx_date_t = dict_find(iter, MESSAGE_KEY_TextDateColor);
+  if (tx_date_t)
   {
-    settings.Text2ColorN = GColorFromHEX(ntx2_color_t->value->int32);
+    settings.TextDateColor = GColorFromHEX(tx_date_t->value->int32);
   }
-  Tuple *tx3_color_t = dict_find(iter, MESSAGE_KEY_Text3Color);
-  if (tx3_color_t)
+  Tuple *tx_rain_color_t = dict_find(iter, MESSAGE_KEY_TextRainColor);
+  if (tx_rain_color_t)
   {
-    settings.TextDayColor = GColorFromHEX(tx3_color_t->value->int32);
+    settings.TextRainColor = GColorFromHEX(tx_rain_color_t->value->int32);
   }
-  Tuple *ntx3_color_t = dict_find(iter, MESSAGE_KEY_Text3ColorN);
-  if (ntx3_color_t)
-  {
-    settings.Text3ColorN = GColorFromHEX(ntx3_color_t->value->int32);
-  }
-  Tuple *tx4_color_t = dict_find(iter, MESSAGE_KEY_Text4Color);
-  if (tx4_color_t)
-  {
-    settings.Text4Color = GColorFromHEX(tx4_color_t->value->int32);
-  }
-  Tuple *ntx4_color_t = dict_find(iter, MESSAGE_KEY_Text4ColorN);
-  if (ntx4_color_t)
-  {
-    settings.Text4ColorN = GColorFromHEX(ntx4_color_t->value->int32);
-  }
-  Tuple *tx5_color_t = dict_find(iter, MESSAGE_KEY_TextWeatherColor);
-  if (tx5_color_t)
-  {
-    settings.TextWeatherColor = GColorFromHEX(tx5_color_t->value->int32);
-  }
-  Tuple *ntx5_color_t = dict_find(iter, MESSAGE_KEY_TextWeatherColorN);
-  if (ntx5_color_t)
-  {
-    settings.TextWeatherColorN = GColorFromHEX(ntx5_color_t->value->int32);
-  }
-  Tuple *tx6_color_t = dict_find(iter, MESSAGE_KEY_Text6Color);
-  if (tx6_color_t)
-  {
-    settings.TextDateColor = GColorFromHEX(tx6_color_t->value->int32);
-  }
-  Tuple *ntx6_color_t = dict_find(iter, MESSAGE_KEY_Text6ColorN);
-  if (ntx6_color_t)
-  {
-    settings.Text6ColorN = GColorFromHEX(ntx6_color_t->value->int32);
-  }
-
-  Tuple *tx7_color_t = dict_find(iter, MESSAGE_KEY_TextTempColor);
-  if (tx7_color_t)
-  {
-    settings.TextTempColor = GColorFromHEX(tx7_color_t->value->int32);
-  }
-  Tuple *ntx7_color_t = dict_find(iter, MESSAGE_KEY_TextTempColorN);
-  if (ntx7_color_t)
-  {
-    settings.TextTempColorN = GColorFromHEX(ntx7_color_t->value->int32);
-  }
+  ///////////////
 
   Tuple *tx8_color_t = dict_find(iter, MESSAGE_KEY_TextRainProbColor);
   if (tx8_color_t)
   {
     settings.TextRainProbColor = GColorFromHEX(tx8_color_t->value->int32);
   }
-  Tuple *ntx8_color_t = dict_find(iter, MESSAGE_KEY_TextRainProbColorN);
-  if (ntx8_color_t)
+  ///////////////
+
+  Tuple *tx_weather_color_t = dict_find(iter, MESSAGE_KEY_TextWeatherColor);
+  if (tx_weather_color_t)
   {
-    settings.TextRainProbColorN = GColorFromHEX(ntx8_color_t->value->int32);
+    settings.TextWeatherColor = GColorFromHEX(tx_weather_color_t->value->int32);
   }
+  ///////////////////////////////
+  Tuple *tx7_color_t = dict_find(iter, MESSAGE_KEY_TextTempColor);
+  if (tx7_color_t)
+  {
+    settings.TextTempColor = GColorFromHEX(tx7_color_t->value->int32);
+  }
+
   // Control of data from http
   // Weather Cond
-  // Hour Sunrise and Sunset
-  Tuple *sunrise_t = dict_find(iter, MESSAGE_KEY_HourSunrise);
-  if (sunrise_t)
-  {
-    HourSunrise = (int)sunrise_t->value->int32;
-  }
-  Tuple *sunset_t = dict_find(iter, MESSAGE_KEY_HourSunset);
-  if (sunset_t)
-  {
-    HourSunset = (int)sunset_t->value->int32;
-  }
-  Tuple *sunset_dt = dict_find(iter, MESSAGE_KEY_WEATHER_SUNSET_KEY);
-  if (sunset_dt)
-  {
-    snprintf(settings.sunsetstring, sizeof(settings.sunsetstring), "%s", sunset_dt->value->cstring);
-  }
-  Tuple *sunrise_dt = dict_find(iter, MESSAGE_KEY_WEATHER_SUNRISE_KEY);
-  if (sunrise_dt)
-  {
-    snprintf(settings.sunrisestring, sizeof(settings.sunrisestring), "%s", sunrise_dt->value->cstring);
-  }
-  Tuple *sunset12_dt = dict_find(iter, MESSAGE_KEY_WEATHER_SUNSET_KEY_12H);
-  if (sunset12_dt)
-  {
-    snprintf(settings.sunsetstring12, sizeof(settings.sunsetstring12), "%s", sunset12_dt->value->cstring);
-  }
-  Tuple *sunrise12_dt = dict_find(iter, MESSAGE_KEY_WEATHER_SUNRISE_KEY_12H);
-  if (sunrise12_dt)
-  {
-    snprintf(settings.sunrisestring12, sizeof(settings.sunrisestring12), "%s", sunrise12_dt->value->cstring);
-  }
-  Tuple *moon_tuple = dict_find(iter, MESSAGE_KEY_MoonPhase);
-  if (moon_tuple)
-  {
-    snprintf(settings.moonstring, sizeof(settings.moonstring), "%s", moon_phase[(int)moon_tuple->value->int32]);
-  }
-  Tuple *wtemp_t = dict_find(iter, MESSAGE_KEY_WeatherTemp);
+  //
+  Tuple *wtemp_t = dict_find(iter, MESSAGE_KEY_TempNow);
   if (wtemp_t)
   {
-    snprintf(settings.tempstring, sizeof(settings.tempstring), "%s", wtemp_t->value->cstring);
+    snprintf(settings.tempNowString, sizeof(settings.tempNowString), "%d",  (int)wtemp_t->value->int32);
   }
 
-  Tuple *wforetemp_t = dict_find(iter, MESSAGE_KEY_TempFore);
+  Tuple *wforetemp_t = dict_find(iter, MESSAGE_KEY_TempForeString);
   if (wforetemp_t)
   {
-    snprintf(settings.tempforestring, sizeof(settings.tempforestring), "%s", wforetemp_t->value->cstring);
+    snprintf(settings.tempForeString, sizeof(settings.tempForeString), "%s", wforetemp_t->value->cstring);
   }
 
-  Tuple *iconnow_tuple = dict_find(iter, MESSAGE_KEY_IconNow);
   //////////Add in icons and forecast hi/lo temp////////////
+  Tuple *iconnow_tuple = dict_find(iter, MESSAGE_KEY_IconNow);
   if (iconnow_tuple)
   {
-    snprintf(settings.iconnowstring, sizeof(settings.iconnowstring), "%s", weather_conditions[(int)iconnow_tuple->value->int32]);
+    snprintf(settings.iconNowString, sizeof(settings.iconNowString), "%s", weather_conditions[(int)iconnow_tuple->value->int32]);
   }
 
   Tuple *iconfore_tuple = dict_find(iter, MESSAGE_KEY_IconFore);
   if (iconfore_tuple)
   {
-    snprintf(settings.iconforestring, sizeof(settings.iconforestring), "%s", weather_conditions[(int)iconfore_tuple->value->int32]);
+    snprintf(settings.iconForeString, sizeof(settings.iconForeString), "%s", weather_conditions[(int)iconfore_tuple->value->int32]);
   }
 
-  Tuple *frequpdate = dict_find(iter, MESSAGE_KEY_UpSlider);
+
+  Tuple *rain_now_tuple = dict_find(iter, MESSAGE_KEY_RainNow);
+  if (rain_now_tuple)
+  {
+    snprintf(settings.rainNowString, sizeof(settings.rainNowString), "%d.%d",  (int)(rain_now_tuple->value->int32/10), (int)(rain_now_tuple->value->int32%10));
+  }
+  
+ Tuple *rain_sum_tuple = dict_find(iter, MESSAGE_KEY_RainSumFore);
+  if (rain_sum_tuple)
+  {
+    snprintf(settings.rainSumForeString, sizeof(settings.rainSumForeString), "%d.%d", (int) (rain_sum_tuple->value->int32/10), (int)(rain_sum_tuple->value->int32%10));
+  }
+
+  Tuple *rain_prob_now = dict_find(iter, MESSAGE_KEY_RainProbNow);
+  if (rain_prob_now)
+  {
+    snprintf(settings.rainProbNowString, sizeof(settings.rainProbNowString), "%d", (int)rain_prob_now->value->int32);
+  }
+  Tuple *rainprob_max_tuple = dict_find(iter, MESSAGE_KEY_RainProbMaxFore);
+  if (rainprob_max_tuple)
+  {
+    snprintf(settings.rainProbMaxForeString, sizeof(settings.rainProbMaxForeString), "%d", (int)rainprob_max_tuple->value->int32);
+  }
+
+
+  Tuple *frequpdate = dict_find(iter, MESSAGE_KEY_UpdateSlider);
   if (frequpdate)
   {
-    settings.UpSlider = (int)frequpdate->value->int32;
+    settings.UpdateSlider = (int)frequpdate->value->int32;
     // Restart the counter
-    s_countdown = settings.UpSlider;
-  }
-
-  Tuple *disntheme_t = dict_find(iter, MESSAGE_KEY_NightTheme);
-  if (disntheme_t)
-  {
-    if (disntheme_t->value->int32 == 0)
-    {
-      settings.NightTheme = false;
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "NTHeme off");
-    }
-    else
-      settings.NightTheme = true;
-  }
-
-  Tuple *weatheron_t = dict_find(iter, MESSAGE_KEY_WeatherOn);
-  if (weatheron_t)
-  {
-    if (weatheron_t->value->int32 == 0)
-    {
-      settings.WeatherOn = false;
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Current Weather off");
-    }
-    else
-    {
-      settings.WeatherOn = true;
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Current Weather on");
-    }
-    weather_options_changed = true;
-  }
-
-  Tuple *forecast_weatheron_t = dict_find(iter, MESSAGE_KEY_ForecastWeatherOn);
-  if (forecast_weatheron_t)
-  {
-    if (forecast_weatheron_t->value->int32 == 0)
-    {
-      settings.ForecastWeatherOn = false;
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Forecast Weather off");
-    }
-    else
-    {
-      settings.ForecastWeatherOn = true;
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Forecast Weather on");
-    }
-    weather_options_changed = true;
-  }
-
-  Tuple *sunseton_t = dict_find(iter, MESSAGE_KEY_SunsetOn);
-  if (sunseton_t)
-  {
-    if (sunseton_t->value->int32 == 0)
-    {
-      settings.SunsetOn = false;
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Sunset/Sunrise off");
-    }
-    else
-    {
-      settings.SunsetOn = true;
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Sunset/Sunrise on");
-    }
-    weather_options_changed = true;
-  }
-
-  int options_count = settings.WeatherOn + settings.ForecastWeatherOn + settings.SunsetOn;
-
-  if (options_count == 1)
-  {
-    if (settings.WeatherOn)
-    {
-      showForecast = 1;
-    }
-    else if (settings.ForecastWeatherOn)
-    {
-      showForecast = 2;
-    }
-    else if (settings.SunsetOn)
-    {
-      showForecast = 0;
-    }
-    weather_options_changed = true;
-  }
-
-  if (options_count == 2)
-  {
-    // redraw on save to show a weather option instead of sunset
-    if (settings.WeatherOn)
-    {
-      showForecast = 1;
-    }
-    else if (settings.ForecastWeatherOn)
-    {
-      showForecast = 2;
-    }
-    weather_options_changed = true;
-  }
-
-  Tuple *addzero12_t = dict_find(iter, MESSAGE_KEY_AddZero12h);
-  if (addzero12_t)
-  {
-    if (addzero12_t->value->int32 == 0)
-    {
-      settings.AddZero12h = false;
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Add Zero 12h off");
-    }
-    else
-    {
-      settings.AddZero12h = true;
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Add Zero 12h on");
-    }
-  }
-
-  Tuple *remzero24_t = dict_find(iter, MESSAGE_KEY_RemoveZero24h);
-  if (remzero24_t)
-  {
-    if (remzero24_t->value->int32 == 0)
-    {
-      settings.RemoveZero24h = false;
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Remove Zero 24h off");
-    }
-    else
-    {
-      settings.RemoveZero24h = true;
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Remove Zero 24h off");
-    }
+    s_countdown = settings.UpdateSlider;
   }
 
   // Update colors
-  layer_mark_dirty(s_date_canvas);
-  if (weather_options_changed)
-  {
-    layer_mark_dirty(s_canvas_weather);
-  }
+  layer_mark_dirty(s_canvas_date);
+  layer_mark_dirty(s_canvas_weather);
+  layer_mark_dirty(s_canvas_rain);
   layer_mark_dirty(s_canvas_bt_icon);
   layer_mark_dirty(s_canvas_qt_icon);
 
@@ -1031,9 +835,9 @@ static void window_load(Window *window)
   layer_add_child(window_layer, time_area_layer);
   layer_set_update_proc(time_area_layer, update_time_area_layer);
 
-  s_date_canvas = layer_create(bounds);
-  layer_set_update_proc(s_date_canvas, layer_update_date_proc);
-  layer_add_child(window_layer, s_date_canvas);
+  s_canvas_date = layer_create(bounds);
+  layer_set_update_proc(s_canvas_date, layer_update_date_proc);
+  layer_add_child(window_layer, s_canvas_date);
 
   s_canvas_rain = layer_create(bounds);
   layer_set_update_proc(s_canvas_rain, layer_update_rain);
@@ -1055,8 +859,9 @@ static void window_load(Window *window)
 static void window_unload(Window *window)
 {
   layer_destroy(s_canvas_background);
-  text_layer_destroy(s_rain_layer);
-  layer_destroy(s_date_canvas);
+  layer_destroy(s_canvas_date);
+  layer_destroy(s_canvas_rain);
+  layer_destroy(s_canvas_weather);
   layer_destroy(time_area_layer);
   layer_destroy(s_canvas_bt_icon);
   layer_destroy(s_canvas_qt_icon);
@@ -1085,7 +890,7 @@ void main_window_update(int hours, int minutes, int weekday, int day)
   s_weekday = weekday;
 
   layer_mark_dirty(s_canvas_background);
-  layer_mark_dirty(s_date_canvas);
+  layer_mark_dirty(s_canvas_date);
   layer_mark_dirty(s_canvas_bt_icon);
   layer_mark_dirty(s_canvas_qt_icon);
   layer_mark_dirty(time_area_layer);
@@ -1098,72 +903,22 @@ static void tick_handler(struct tm *time_now, TimeUnits changed)
 
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Tick at %d", time_now->tm_min);
 
-  if (s_countdown == 0 && (settings.WeatherOn || settings.ForecastWeatherOn))
+  if (s_countdown == 0)
   {
-    s_countdown = settings.UpSlider;
-  }
-  else if (s_countdown == 0)
-  {
-    // Reset
-    s_countdown = 60;
+    // reset counter
+    s_countdown = settings.UpdateSlider;
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Update weather at %d", time_now->tm_min);
+    request_watchjs();
   }
   else
   {
     s_countdown = s_countdown - 1;
-  }
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Countdown to update %d", s_countdown);
-  // Evaluate if is day or night
-  int nowthehouris = s_hours * 100 + s_minutes;
-  if (HourSunrise <= nowthehouris && nowthehouris <= HourSunset)
-  {
-    IsNightNow = false;
-  }
-  else
-  {
-    IsNightNow = true;
-  }
-  // Extra catch on sunrise and sunset
-  if (nowthehouris == HourSunrise || nowthehouris == HourSunset)
-  {
-    s_countdown = 1;
-  }
-  if (GPSOn && settings.NightTheme)
-  {
-    // Extra catch around 1159 to gather information of today
-    if (nowthehouris == 1159 && s_countdown > 5)
-    {
-      s_countdown = 1;
-    };
-    // Change Color of background
-    layer_mark_dirty(s_canvas_background);
-    layer_mark_dirty(s_date_canvas);
-    layer_mark_dirty(s_canvas_weather);
-    layer_mark_dirty(s_canvas_bt_icon);
-    layer_mark_dirty(s_canvas_qt_icon);
-    layer_mark_dirty(time_area_layer);
-  }
-  // Get weather update every requested minutes and extra request 5 minutes earlier
-  if (s_countdown == 0 || s_countdown == 5)
-  {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Update weather at %d", time_now->tm_min);
-    request_watchjs();
-  }
-  // If GPS was off request weather every 15 minutes
-  if (!GPSOn)
-  {
-    if (s_countdown % 15 == 0)
-    {
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Attempt to request GPS on %d", time_now->tm_min);
-      request_watchjs();
-    }
   }
 }
 
 static void init()
 {
   prv_load_settings();
-  // Listen for AppMessages
-
   time_t now = time(NULL);
   struct tm *t = localtime(&now);
   s_hours = t->tm_hour;
@@ -1182,7 +937,7 @@ static void init()
 
   FontDay = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
   FontDateNumber = fonts_get_system_font(FONT_KEY_BITHAM_34_MEDIUM_NUMBERS);
-  FontBattery = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
+  FontRainProb = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
   FontFore = fonts_get_system_font(FONT_KEY_GOTHIC_24);
   FontWeatherIcons = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_WEATHERICONS_22));
   FontIcon = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_WEATHERICONS_28));
@@ -1192,7 +947,8 @@ static void init()
 
   FontDay = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
   FontDateNumber = fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD);
-  FontBattery = fonts_get_system_font(FONT_KEY_GOTHIC_14);
+  FontRain = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
+  FontRainProb = fonts_get_system_font(FONT_KEY_GOTHIC_14);
   FontFore = PBL_IF_ROUND_ELSE(fonts_get_system_font(FONT_KEY_GOTHIC_14), fonts_get_system_font(FONT_KEY_GOTHIC_18));
   FontWeatherIcons = fonts_load_custom_font(resource_get_handle(PBL_IF_ROUND_ELSE(RESOURCE_ID_FONT_WEATHERICONS_12, RESOURCE_ID_FONT_WEATHERICONS_16)));
   FontIcon = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_WEATHERICONS_20));

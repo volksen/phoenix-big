@@ -114,7 +114,7 @@ module.exports = [
       {
         "type": "slider",
         "messageKey": "UpdateSlider",
-        "defaultValue": 15,
+        "defaultValue": 30,
         "label": "Update frequency (minutes)",
         "description": "More frequent requests will drain your phone battery more quickly",
         "min": 15,
