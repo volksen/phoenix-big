@@ -7,7 +7,7 @@
 #include <pebble-fctx/ffont.h>
 
 static uint32_t s_last_tap_time = 0;
-#define TAP_COOLDOWN_MS 1500 // 1.5 second cooldown
+#define TAP_COOLDOWN_MS 1000 // 1.5 second cooldown
 
 // Static and initial vars
 static GFont
@@ -489,8 +489,8 @@ static void layer_update_rain(Layer *layer, GContext *ctx)
   //  graphics_context_set_text_color(ctx, settings.TextRainProbColor);
 
 #if defined(PBL_PLATFORM_EMERY)
-  GRect RainRect = GRect(87, 178, 75, 27);
-  GRect RainProbRect = GRect(100, 205, 50, 27);
+  GRect RainRect = GRect(87, 180, 75, 27);
+  GRect RainProbRect = GRect(100, 200, 50, 27);
 
 #else
   GRect RainRect = PBL_IF_ROUND_ELSE(
@@ -501,45 +501,50 @@ static void layer_update_rain(Layer *layer, GContext *ctx)
       GRect(100, 136 + 12, 50, 20),
       GRect(0 + 108 - 19 - 18, 150, 38, 20));
 #endif
-  // char RainToDraw[20];
-  // char RainProbToDraw[20];
+  char RainProbToDraw[22];
 
-  // snprintf(RainToDraw, sizeof(RainToDraw), "%s", settings.rainNowString);
-  // snprintf(RainProbToDraw, sizeof(RainProbToDraw), "%s", settings.rainProbNowString);
 
   if (showForecast == 0) // show current weather
   {
-    graphics_context_set_text_color(ctx, settings.TextRainColor);
-    graphics_draw_text(ctx, settings.rainNowString, FontRain, RainRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-    graphics_context_set_text_color(ctx, settings.TextRainProbColor);
-    graphics_draw_text(ctx, settings.rainProbNowString, FontRainProb, RainProbRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+   
+    snprintf(RainProbToDraw, sizeof(RainProbToDraw), "%s%%", settings.rainProbNowString);
 
 #ifdef PBL_ROUND
     graphics_context_set_text_color(ctx, settings.TextRainColor);
     graphics_draw_text(ctx, settings.rainNowString, FontRain, RainRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentLeft, GTextAlignmentCenter), NULL);
     graphics_context_set_text_color(ctx, settings.TextRainProbColor);
-    graphics_draw_text(ctx, settings.rainProbNowString, FontRainProb, RainProbRect, GTextOverflowModeFill,
+    graphics_draw_text(ctx, RainProbToDraw, FontRainProb, RainProbRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+#else
+
+    graphics_context_set_text_color(ctx, settings.TextRainColor);
+    graphics_draw_text(ctx, settings.rainNowString, FontRain, RainRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+    graphics_context_set_text_color(ctx, settings.TextRainProbColor);
+    graphics_draw_text(ctx, RainProbToDraw, FontRainProb, RainProbRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 #endif
   }
   else if (showForecast == 1) // show forecast weather
   {
-    graphics_context_set_text_color(ctx, settings.TextTempColor);
-    graphics_draw_text(ctx, settings.rainSumForeString, FontRain, RainRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-    graphics_context_set_text_color(ctx, settings.TextWeatherColor);
-    graphics_draw_text(ctx, settings.rainProbMaxForeString, FontRainProb, RainProbRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+    snprintf(RainProbToDraw, sizeof(RainProbToDraw), "%s%%", settings.rainProbMaxForeString);
+
+  
 
 #ifdef PBL_ROUND
     graphics_context_set_text_color(ctx, settings.TextRainColor);
     graphics_draw_text(ctx, settings.rainSumForeString, FontWeatherIcons, RainRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentLeft, GTextAlignmentCenter), NULL);
     graphics_context_set_text_color(ctx, settings.TextRainProbColor);
-    graphics_draw_text(ctx, settings.rainProbMaxForeString, FontDay, RainProbRect, GTextOverflowModeFill,
+    graphics_draw_text(ctx, RainProbToDraw, FontDay, RainProbRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+#else
+  graphics_context_set_text_color(ctx, settings.TextRainColor);
+    graphics_draw_text(ctx, settings.rainSumForeString, FontRain, RainRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+    graphics_context_set_text_color(ctx, settings.TextRainProbColor);
+    graphics_draw_text(ctx, RainProbToDraw, FontRainProb, RainProbRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 #endif
   }
@@ -575,14 +580,6 @@ static void layer_update_proc_weather(Layer *layer2, GContext *ctx2)
 
   if (showForecast == 0) // show current weather
   {
-    graphics_context_set_text_color(ctx2, settings.TextTempColor);
-    graphics_draw_text(ctx2, TempToDraw, FontDay, TempRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-
-    graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
-    graphics_draw_text(ctx2, CondToDraw, FontIcon, IconRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-
 #ifdef PBL_ROUND
     graphics_context_set_text_color(ctx2, settings.TextTempColor);
     graphics_draw_text(ctx2, TempToDraw, FontWeatherIcons, TempRect, GTextOverflowModeFill,
@@ -591,23 +588,31 @@ static void layer_update_proc_weather(Layer *layer2, GContext *ctx2)
     graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
     graphics_draw_text(ctx2, CondToDraw, FontDay, IconRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+#else
+    graphics_context_set_text_color(ctx2, settings.TextTempColor);
+    graphics_draw_text(ctx2, TempToDraw, FontDay, TempRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+
+    graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
+    graphics_draw_text(ctx2, CondToDraw, FontIcon, IconRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 #endif
   }
   else if (showForecast == 1) // show forecast weather
   {
-    graphics_context_set_text_color(ctx2, settings.TextTempColor);
-    graphics_draw_text(ctx2, HiLowToDraw, FontFore, TempRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-    graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
-    graphics_draw_text(ctx2, ForeToDraw, FontIcon, IconRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-
 #ifdef PBL_ROUND
     graphics_context_set_text_color(ctx2, settings.TextTempColor);
     graphics_draw_text(ctx2, HiLowToDraw, FontWeatherIcons, TempRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentLeft, GTextAlignmentCenter), NULL);
     graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
     graphics_draw_text(ctx2, ForeToDraw, FontDay, IconRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+#else
+    graphics_context_set_text_color(ctx2, settings.TextTempColor);
+    graphics_draw_text(ctx2, HiLowToDraw, FontFore, TempRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+    graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
+    graphics_draw_text(ctx2, ForeToDraw, FontIcon, IconRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 #endif
   }
@@ -937,8 +942,8 @@ static void init()
 
   FontDay = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
   FontDateNumber = fonts_get_system_font(FONT_KEY_BITHAM_34_MEDIUM_NUMBERS);
-  FontRain = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
-  FontRainProb = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
+  FontRain = fonts_get_system_font(FONT_KEY_GOTHIC_24);
+  FontRainProb = fonts_get_system_font(FONT_KEY_GOTHIC_24);
   FontFore = fonts_get_system_font(FONT_KEY_GOTHIC_24);
   FontWeatherIcons = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_WEATHERICONS_22));
   FontIcon = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_WEATHERICONS_28));

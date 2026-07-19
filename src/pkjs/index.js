@@ -111,7 +111,7 @@ function fetchWeatherData(pos) {
             var pData = {
                 "TempNow": Math.round(json.current.temperature_2m),
                 "IconNow": ds_iconToId[json.current.weather_code + ',' + json.current.is_day] || 101,
-                "TempFore": Math.round(json.daily.temperature_2m_min[0]) + '|' + Math.round(json.daily.temperature_2m_max[0]),
+                "TempForeString": Math.round(json.daily.temperature_2m_min[0]) + '|' + Math.round(json.daily.temperature_2m_max[0]),
                 "IconFore": ds_iconToId[json.daily.weather_code[0] + ',1'] || 101,
                 "RainNow": json.current.precipitation !== null ? Math.round(json.current.precipitation * 10) : 0,
                 "RainProbNow": json.current.precipitation_probability !== null ? Math.round(json.current.precipitation_probability) : 0,
