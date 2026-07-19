@@ -1,50 +1,55 @@
 #pragma once
-#include <pebble.h>  
+#include <pebble.h>
 
-// used to pass bimap info to get/set pixel accurately  
-typedef struct {
-   GBitmap *bitmap;  // actual bitmap for Chalk raw manipulation
-   uint8_t *bitmap_data;
-   int bytes_per_row;
-   GBitmapFormat bitmap_format;
-}  BitmapInfo;
-  
+// used to pass bimap info to get/set pixel accurately
+typedef struct
+{
+  GBitmap *bitmap; // actual bitmap for Chalk raw manipulation
+  uint8_t *bitmap_data;
+  int bytes_per_row;
+  GBitmapFormat bitmap_format;
+} BitmapInfo;
+
 // structure of mask for masking effects
-typedef struct {
-  GBitmap*  bitmap_mask; // bitmap used for mask (when masking by bitmap)
-  GBitmap*  bitmap_background; // bitmap to show thru mask
-  GColor*   mask_colors; //array with colors of the mask
-  GColor    background_color; // color of the background
-  char*     text; // text used for mask (when when masking by text)
-  GFont     font; // font used for text mask;
+typedef struct
+{
+  GBitmap *bitmap_mask;            // bitmap used for mask (when masking by bitmap)
+  GBitmap *bitmap_background;      // bitmap to show thru mask
+  GColor *mask_colors;             // array with colors of the mask
+  GColor background_color;         // color of the background
+  char *text;                      // text used for mask (when when masking by text)
+  GFont font;                      // font used for text mask;
   GTextOverflowMode text_overflow; // overflow used for text mask;
-  GTextAlignment  text_align; // alignment used for text masks
-} EffectMask;  
+  GTextAlignment text_align;       // alignment used for text masks
+} EffectMask;
 
 // structure for FPS effect
-typedef struct {
-  time_t  starttt; // time_t at the first refresh
-  uint16_t  startms; // ms at the first refresh
-  uint32_t  frame; // frame number
-} EffectFPS;  
+typedef struct
+{
+  time_t starttt;   // time_t at the first refresh
+  uint16_t startms; // ms at the first refresh
+  uint32_t frame;   // frame number
+} EffectFPS;
 
 // structure for effect at given offset (currently used for effect_shadow)
-typedef struct {
-  GColor orig_color; //color of pixel being ofset
-  GColor offset_color; //new color of pixel at offset coords
-  int8_t offset_x; // horizontal ofset
-  int8_t offset_y; // vertical offset
-  int8_t option; // optional parameter (currently in effect_shadow 1=draw long shadow)
+typedef struct
+{
+  GColor orig_color;       // color of pixel being ofset
+  GColor offset_color;     // new color of pixel at offset coords
+  int8_t offset_x;         // horizontal ofset
+  int8_t offset_y;         // vertical offset
+  int8_t option;           // optional parameter (currently in effect_shadow 1=draw long shadow)
   uint8_t *aplite_visited; // for Applite holds array of visited pixels
-} EffectOffset;  
+} EffectOffset;
 
 // structure for color swap effect
-typedef struct {
+typedef struct
+{
   GColor firstColor;  // first color (target for colorize, one of set in colorswap)
   GColor secondColor; // second color (new color for colorize, other of set in colorswap)
 } EffectColorpair;
 
-typedef void effect_cb(GContext* ctx, GRect position, void* param);
+typedef void effect_cb(GContext *ctx, GRect position, void *param);
 
 // inverter effect.
 // Added by Yuriy Galanter
@@ -68,7 +73,6 @@ effect_cb effect_invert_brightness;
 // Added by Yuriy Galanter
 effect_cb effect_mirror_vertical;
 
-
 // horizontal mirror effect.
 // Added by Yuriy Galanter
 effect_cb effect_mirror_horizontal;
@@ -85,19 +89,18 @@ effect_cb effect_blur;
 
 // Zoom effect
 // Added by Ron64
-// Parameter: Y zoom (high byte) X zoom(low byte),  0x10 no zoom 0x20 200% 0x08 50%, 
-// use the percentage macro EL_ZOOM(150,60). In this example: Y- zomm in 150%, X- zoom out to 60% 
+// Parameter: Y zoom (high byte) X zoom(low byte),  0x10 no zoom 0x20 200% 0x08 50%,
+// use the percentage macro EL_ZOOM(150,60). In this example: Y- zomm in 150%, X- zoom out to 60%
 effect_cb effect_zoom;
 
-#define EL_ZOOM(x,y) ((void*)((((y)*16/100)|(((x)*16/100)<<8))))
+#define EL_ZOOM(x, y) ((void *)((((y) * 16 / 100) | (((x) * 16 / 100) << 8))))
 
 // Lens effect
 // Added by Ron64
 // Parameters: lens focal(high byte) and object distance(low byte)
 effect_cb effect_lens;
 
-#define EL_LENS(f,d) ((void*) ( d|(f<<8)))
-
+#define EL_LENS(f, d) ((void *)(d | (f << 8)))
 
 // mask effect.
 // Added by Yuriy Galanter
