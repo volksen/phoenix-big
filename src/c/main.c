@@ -460,38 +460,9 @@ static void layer_update_date_proc(Layer *layer, GContext *ctx)
 
 static void layer_update_rain(Layer *layer, GContext *ctx)
 {
-
-  // #if defined(PBL_PLATFORM_EMERY)
-
-  //   s_canvas_rain = text_layer_create(GRect(87, 178, 75, 27));
-  //   text_layer_set_background_color(s_canvas_rain, GColorClear);
-  //   text_layer_set_font(s_canvas_rain,
-  //                       FontDay);
-  //   text_layer_set_text_alignment(s_canvas_rain, GTextAlignmentCenter);
-  //   layer_add_child(window_layer, text_layer_get_layer(s_canvas_rain));
-
-  // #else
-  //   s_canvas_rain = text_layer_create(PBL_IF_ROUND_ELSE(
-  //       GRect(100, 28, 72, 20),
-  //       GRect(0 + 108 - 27 - 18, 132, 54, 20)));
-  //   text_layer_set_background_color(s_canvas_rain, GColorClear);
-  //   text_layer_set_font(s_canvas_rain,
-  //                       FontDay);
-  //   text_layer_set_text_alignment(s_canvas_rain, (PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter)));
-  //   layer_add_child(window_layer, text_layer_get_layer(s_canvas_rain));
-  // #endif
-
-  // todo HERE HERE
-  //  rain probability
-  //  snprintf(battperc, sizeof(battperc), "%d", battery_level);
-  //  strcat(battperc, "%");
-  //  graphics_draw_text(ctx, settings.battperc, FontRainProb, RainProbRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-  //  graphics_context_set_text_color(ctx, settings.TextRainProbColor);
-
 #if defined(PBL_PLATFORM_EMERY)
   GRect RainRect = GRect(87, 180, 75, 27);
   GRect RainProbRect = GRect(100, 200, 50, 27);
-
 #else
   GRect RainRect = PBL_IF_ROUND_ELSE(
       GRect(100, 28, 72, 20),
@@ -574,7 +545,7 @@ static void layer_update_proc_weather(Layer *layer2, GContext *ctx2)
   char HiLowToDraw[20];
 
   snprintf(CondToDraw, sizeof(CondToDraw), "%s", settings.iconNowString);
-  snprintf(TempToDraw, sizeof(TempToDraw), "%s", settings.tempNowString);
+  snprintf(TempToDraw, sizeof(TempToDraw), "%s°", settings.tempNowString);
   snprintf(ForeToDraw, sizeof(ForeToDraw), "%s", settings.iconForeString);
   snprintf(HiLowToDraw, sizeof(HiLowToDraw), "%s", settings.tempForeString);
 
