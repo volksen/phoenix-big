@@ -171,8 +171,8 @@ static void prv_default_settings()
   settings.TextTempColor = GColorWhite;
   settings.UpdateSlider = 30;
   strncpy(settings.tempForeString, "NA", sizeof(settings.tempForeString) - 1);
-  strncpy(settings.iconNowString, "", sizeof(settings.iconNowString) - 1);
-  strncpy(settings.iconForeString, "", sizeof(settings.iconForeString) - 1);
+  strncpy(settings.iconNowString, "\U0000F07B", sizeof(settings.iconNowString) - 1);
+  strncpy(settings.iconForeString, "\U0000F07B", sizeof(settings.iconForeString) - 1);
   strncpy(settings.rainNowString, "NA", sizeof(settings.rainNowString) - 1);
   strncpy(settings.rainSumForeString, "NA", sizeof(settings.rainSumForeString) - 1);
   strncpy(settings.rainProbNowString, "NA", sizeof(settings.rainProbNowString) - 1);
@@ -937,6 +937,7 @@ static void init()
 
   FontDay = fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD);
   FontDateNumber = fonts_get_system_font(FONT_KEY_BITHAM_34_MEDIUM_NUMBERS);
+  FontRain = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
   FontRainProb = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
   FontFore = fonts_get_system_font(FONT_KEY_GOTHIC_24);
   FontWeatherIcons = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_WEATHERICONS_22));
