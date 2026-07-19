@@ -110,25 +110,7 @@ module.exports = [
         "defaultValue": "Weather settings",
         "description": "Shake or tap to change view between Current Weather and Forecast Weather",
       },
-      {
-        "type": "input",
-        "messageKey": "Lat",
-        "defaultValue": "",
-        "label": "Manual Location - Latitude",
-        "attributes": {
-          "placeholder": "eg: 51.4962 (leave blank to use GPS)"
-        }
-      },
-      {
-        "type": "input",
-        "messageKey": "Long",
-        "defaultValue": "",
-        "label": "Manual Location - Longitude",
-        "description": "Leave both blank to use GPS location for sunrise & sunset times and weather. You can use <a href =https://www.google.com/maps>Google Maps</a> or <a href =https://www.openstreetmap.org/>OpenStreetMap</a> to find latitude & longitude.",
-        "attributes": {
-          "placeholder": "eg: -0.0989 (leave blank to use GPS)"
-        }
-      },
+     
       {
         "type": "slider",
         "messageKey": "UpSlider",
