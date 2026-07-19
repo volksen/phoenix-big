@@ -1,7 +1,7 @@
 # rainy phoenix
 
 Fork of the awesome [phoenix-big](https://github.com/astosia/phoenix_big) by Astosia. Removed many settings and features that I don't need and added rain and rain probability.
-
+<!--
 Pebble watchface, now updated with current weather conditions
 
 Aplite & Diorite (OG, Steel, and Pebble 2)- steps not on OG & Steel
@@ -35,3 +35,4 @@ Emery (Pebble Time 2)
 <img width="200" height="228" alt="pebble_screenshot_2025-12-31_11-49-39" src="https://github.com/user-attachments/assets/5ce37b66-e209-447f-94ac-cc79bbfdf52b" />
 <img width="200" height="228" alt="pebble_screenshot_2025-12-31_11-51-13" src="https://github.com/user-attachments/assets/07a025a8-cca0-4176-9ef2-ca7b81c7420b" />
 <img width="200" height="228" alt="pebble_screenshot_2025-12-31_11-52-22" src="https://github.com/user-attachments/assets/dbed0e2d-03bd-41fa-b40c-ba13c34f6a87" />
+-->

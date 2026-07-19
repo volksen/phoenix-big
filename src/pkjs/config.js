@@ -25,21 +25,21 @@ module.exports = [
       },
       {
         "type": "color",
-        "messageKey": "FrameColor1",
+        "messageKey": "RoundLeftFrameColor1",
         "defaultValue": "0x000000",
         "label": "Left Sidebar Colour",
         "capabilities": ["ROUND"]
       },
       {
         "type": "color",
-        "messageKey": "SideColor1",
+        "messageKey": "MinBackColor1",
         "defaultValue": "0x000000",
         "label": "Minute Background Colour",
         "allowGray": true
       },
       {
         "type": "color",
-        "messageKey": "SideColor2",
+        "messageKey": "HourBackColor2",
         "defaultValue": "0x000000",
         "label": "Hour Background Colour",
         "allowGray": true
@@ -113,7 +113,7 @@ module.exports = [
      
       {
         "type": "slider",
-        "messageKey": "UpSlider",
+        "messageKey": "UpdateSlider",
         "defaultValue": 15,
         "label": "Update frequency (minutes)",
         "description": "More frequent requests will drain your phone battery more quickly",

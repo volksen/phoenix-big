@@ -160,7 +160,7 @@ Pebble.addEventListener('ready',
 
 Pebble.addEventListener('appmessage',
     function (e) {
-        console.log("Requesting geoposition!");
+        console.log("Requesting weather!");
         if (e.payload['REQUEST_WEATHER']) {
             getWeather();
         }
