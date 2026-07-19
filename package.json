@@ -27,15 +27,15 @@
             "TextRainProbColor",
             "TextWeatherColor",
             "TextTempColor",
-            "WeatherCond",
-            "WeatherTemp",
-            "NameLocation",
-            "UpSlider",
             "bluetoothvibe",
+            "TempNow",
             "IconNow",
-            "IconFore",
             "TempFore",
-            "TempForeLow"
+            "IconFore",
+            "RainNow",
+            "RainProbNow",
+            "RainSumFore",
+            "RainProbMaxFore"
         ],
         "projectType": "native",
         "resources": {

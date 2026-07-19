@@ -64,20 +64,30 @@ var ds_iconToId = {
     '99,0': 20, //99 = Thunderstorn with heavy hail
 };
 
-
-//--- Helper Functions ---
+// --- Helper Functions ---
+/**
+ * Robust network helper that catches HTTP errors before passing to callbacks
+ */
 var xhrRequest = function (url, type, callback) {
     var xhr = new XMLHttpRequest();
-    xhr.onload = function () { callback(this.responseText); };
+    xhr.onload = function () {
+        // Only trigger callback if server responded with a success status (200-299)
+        if (this.status >= 200 && this.status < 300) {
+            callback(this.responseText);
+        } else {
+            console.log("Network error: Server responded with status " + this.status);
+        }
+    };
+    xhr.onerror = function () {
+        console.log("Network error: Connection failed completely.");
+    };
     xhr.open(type, url);
     xhr.send();
 };
 
+
 // --- Main Logic Functions ---
 
-/**
- * Fetches and processes weather data for a given provider.
- */
 function fetchWeatherData(pos) {
     var lat, lon;
     if (pos) { // GPS
@@ -92,61 +102,28 @@ function fetchWeatherData(pos) {
 
     if (!lat || !lon) return;
 
-    var url, parseFunc;
+    var url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon +
+        "&daily=precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min,weather_code&current=weather_code,precipitation,precipitation_probability,temperature_2m,is_day&timezone=auto&forecast_days=1";
 
-    url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon +
-        "&models=best_match&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_hours,precipitation_probability_mean&current=temperature_2m,precipitation,weather_code,is_day&forecast_days=1&timeformat=unixtime";
-    parseFunc = function (json) {
-        var tempf = Math.round((json.current.temperature_2m * 9 / 5) + 32);
-        var tempc = Math.round(json.current.temperature_2m);
-        var temp = String(temptousewu(units, tempf, tempc)) + '\xB0';
-        var icon_now = ds_iconToId[String(json.current.weather_code) + ',' + String(json.current.is_day)];
-        var forecast_icon = ds_iconToId[String(json.daily.weather_code[0]) + ',1'];
-        var forecast_high_tempf = Math.round((json.daily.temperature_2m_max[0] * 9 / 5) + 32);
-        var forecast_low_tempf = Math.round((json.daily.temperature_2m_min[0] * 9 / 5) + 32);
-        var forecast_high_tempc = Math.round(json.daily.temperature_2m_max[0]);
-        var forecast_low_tempc = Math.round(json.daily.temperature_2m_min[0]);
-        var high = String(temptousewu(units, forecast_high_tempf, forecast_high_tempc));
-        var low = String(temptousewu(units, forecast_low_tempf, forecast_low_tempc));
-        var highlow = high + '|' + low;
-        var aux_time = new Date(json.current.time * 1000);
-        var weather_time = aux_time.getHours() * 100 + aux_time.getMinutes();
-
-        console.log(weatherprov);
-        console.log(weather_time);
-        console.log(temp);
-        console.log(icon_now);
-        console.log(highlow);
-        console.log(forecast_icon);
-
-        return {
-            "WeatherTemp": temp,
-            "IconNow": icon_now,
-            "Weathertime": weather_time,
-            "IconFore": forecast_icon,
-            "TempFore": highlow
-        };
-    };
-
-
-    xhrRequest(encodeURI(url), 'GET', function (responseText) {
+    xhrRequest(url, 'GET', function (responseText) {
         try {
             var json = JSON.parse(responseText);
-            var weatherDict = parseFunc(json);
-            var finalDictionary = {};
-            var dictsToMerge = [astroData.dictionary, weatherDict];
-            var i, key, source;
-            for (i = 0; i < dictsToMerge.length; i++) {
-                source = dictsToMerge[i];
-                for (key in source) {
-                    // Check to ensure the property belongs to the object (not inherited)
-                    if (Object.prototype.hasOwnProperty.call(source, key)) {
-                        finalDictionary[key] = source[key];
-                    }
-                }
-            }
 
-            Pebble.sendAppMessage(finalDictionary,
+            // Build the clean Pebble dictionary directly in place
+            var pData = {
+                "TempNow": Math.round(json.current.temperature_2m),
+                "IconNow": ds_iconToId[json.current.weather_code + ',' + json.current.is_day] || 101,
+                "TempFore": Math.round(json.daily.temperature_2m_min[0]) + '|' + Math.round(json.daily.temperature_2m_max[0]),
+                "IconFore": ds_iconToId[json.daily.weather_code[0] + ',1'] || 101,
+                "RainNow": json.current.precipitation !== null ? Math.round(json.current.precipitation * 10) : 0,
+                "RainProbNow": json.current.precipitation_probability !== null ? Math.round(json.current.precipitation_probability) : 0,
+                "RainSumFore": json.daily.precipitation_sum[0] !== null ? Math.round(json.daily.precipitation_sum[0] * 10) : 0,
+                "RainProbMaxFore": json.daily.precipitation_probability_max[0] !== null ? Math.round(json.daily.precipitation_probability_max[0]) : 0
+            };
+
+            console.log("Current Precip scaled: " + pData.PrecipAmount + ", Daily Sum scaled: " + pData.DailyPrecipSum);
+
+            Pebble.sendAppMessage(pData,
                 function () { console.log("Weather sent successfully!"); },
                 function () { console.log("Error sending weather info!"); }
             );
@@ -154,8 +131,13 @@ function fetchWeatherData(pos) {
             console.log("Error parsing weather response: " + e);
         }
     });
-
 }
+// Define our geolocation settings once
+var locationOptions = {
+    enableHighAccuracy: true,
+    timeout: 15000,
+    maximumAge: 60000 // 1 minute (allows a slightly cached location to save battery)
+};
 
 function locationError(err) {
     console.log("Error requesting geolocation!");
@@ -165,26 +147,19 @@ function locationError(err) {
     );
 }
 
-function getinfo() {
-    navigator.geolocation.getCurrentPosition(
-        function (pos) { fetchWeatherData(pos); },
-        locationError,
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 1000 }
-    );
-}
+// --- Listeners ---
 
-// Listeners
 Pebble.addEventListener('ready', function () {
     console.log("Starting Watchface!");
-    getinfo();
+    navigator.geolocation.getCurrentPosition(fetchWeatherData, locationError, locationOptions);
 });
 
 Pebble.addEventListener('appmessage', function () {
     console.log("Requesting geoposition!");
-    getinfo();
-});
-Pebble.addEventListener('webviewclosed', function () {
-    console.log("Updating config!");
-    getinfo();
+    navigator.geolocation.getCurrentPosition(fetchWeatherData, locationError, locationOptions);
 });
 
+Pebble.addEventListener('webviewclosed', function () {
+    console.log("Updating config!");
+    navigator.geolocation.getCurrentPosition(fetchWeatherData, locationError, locationOptions);
+});
