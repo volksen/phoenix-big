@@ -552,13 +552,7 @@ static void layer_update_proc_weather(Layer *layer2, GContext *ctx2)
 
   if (showForecast == 0) // show current weather
   {
-    graphics_context_set_text_color(ctx2, settings.TextTempColor);
-    graphics_draw_text(ctx2, TempToDraw, FontDay, TempRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 
-    graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
-    graphics_draw_text(ctx2, CondToDraw, FontIcon, IconRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 #ifdef PBL_ROUND
     graphics_context_set_text_color(ctx2, settings.TextTempColor);
     graphics_draw_text(ctx2, TempToDraw, FontWeatherIcons, TempRect, GTextOverflowModeFill,
@@ -567,23 +561,32 @@ static void layer_update_proc_weather(Layer *layer2, GContext *ctx2)
     graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
     graphics_draw_text(ctx2, CondToDraw, FontDay, IconRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+#else
+    graphics_context_set_text_color(ctx2, settings.TextTempColor);
+    graphics_draw_text(ctx2, TempToDraw, FontDay, TempRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 
+    graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
+    graphics_draw_text(ctx2, CondToDraw, FontIcon, IconRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 #endif
   }
   else if (showForecast == 1) // show forecast weather
   {
-    graphics_context_set_text_color(ctx2, settings.TextTempColor);
-    graphics_draw_text(ctx2, HiLowToDraw, FontFore, TempRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
-    graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
-    graphics_draw_text(ctx2, ForeToDraw, FontIcon, IconRect, GTextOverflowModeFill,
-                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+
 #ifdef PBL_ROUND
     graphics_context_set_text_color(ctx2, settings.TextTempColor);
     graphics_draw_text(ctx2, HiLowToDraw, FontWeatherIcons, TempRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentLeft, GTextAlignmentCenter), NULL);
     graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
     graphics_draw_text(ctx2, ForeToDraw, FontDay, IconRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+#else
+    graphics_context_set_text_color(ctx2, settings.TextTempColor);
+    graphics_draw_text(ctx2, HiLowToDraw, FontFore, TempRect, GTextOverflowModeFill,
+                       PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
+    graphics_context_set_text_color(ctx2, settings.TextWeatherColor);
+    graphics_draw_text(ctx2, ForeToDraw, FontIcon, IconRect, GTextOverflowModeFill,
                        PBL_IF_ROUND_ELSE(GTextAlignmentCenter, GTextAlignmentCenter), NULL);
 
 #endif
